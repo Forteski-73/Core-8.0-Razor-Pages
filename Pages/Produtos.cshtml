@@ -1,0 +1,28 @@
+﻿@page
+@model OXF.Pages.ProdutosModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Produtos";
+}
+
+<h2 class="mb-4">Produtos disponíveis</h2>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Preço</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var produto in Model.ListaDeProdutos)
+        {
+            <tr>
+                <td>@produto.Id</td>
+                <td>@produto.Nome</td>
+                <td>R$ @produto.Preco.ToString("F2")</td>
+            </tr>
+        }
+    </tbody>
+</table>
