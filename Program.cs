@@ -1,39 +1,51 @@
-using Microsoft.AspNetCore.HttpOverrides;
+ï»¿using Microsoft.AspNetCore.HttpOverrides;
+using OXF.Models;
+using OXF.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adiciona Razor Pages
+builder.Services.AddControllersWithViews(); // habilita validaÃ§Ã£o de asp-for
 builder.Services.AddRazorPages(options =>
 {
-    options.Conventions.AuthorizeFolder("/"); // tudo dentro da pasta / (Pages) exige login
-    options.Conventions.AllowAnonymousToPage("/Login"); //Exceção para não entrar em looping solicitando login
+    options.Conventions.AuthorizeFolder("/");
+    options.Conventions.AllowAnonymousToPage("/Login");
+    options.Conventions.AllowAnonymousToPage("/Register");
 });
 
-// Adiciona autenticação com cookies
+builder.Services.AddSession();
+
 builder.Services.AddAuthentication("CookieAuth")
     .AddCookie("CookieAuth", options =>
     {
         options.LoginPath = "/Login";
-        options.Cookie.Name = "OxfordOnlineAuth";    // opcional: nome personalizado
-        options.Cookie.Path = "/";                 // restringe cookie à subpasta /
-        options.Cookie.HttpOnly = true;               // recomendado
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // só envia cookie em HTTPS
-        options.Cookie.SameSite = SameSiteMode.None;  // necessário para proxy reverso HTTPS
+        options.Cookie.Name = "OxfordOnlineAuth";
+        options.Cookie.Path = "/";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.None;
     });
 
-// Adiciona autorização (obrigatório junto com autenticação)
 builder.Services.AddAuthorization();
+builder.Services.AddHttpClient();
+
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
+builder.Services.AddHttpClient<IAuthService, AuthService>();
+
+builder.Services.AddMemoryCache(); // usa para limitar tentativas d login e registro
+builder.Services.AddSingleton<ILoginAttemptService, LoginAttemptService>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IClientIpProvider, ClientIpProvider>();
+builder.Services.AddHttpClient<IProductService, ProductService>();
 
 var app = builder.Build();
 
-// Configuração de erro para produção
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
-// Configura para entender proxy reverso (Nginx)
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -41,15 +53,12 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
-// Autenticação vem antes de autorização
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Mapeia as páginas Razor
 app.MapRazorPages();
 
-// Executa na porta 5001 (localhost)
 app.Run("http://localhost:5001");

@@ -11,24 +11,74 @@
     <!-- Seu CSS -->
     <link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="/OXF.styles.css" asp-append-version="true" />
+
+    <style>
+        footer.bg-light {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1030;
+        }
+
+        main.container {
+            padding-bottom: 60px; /* Altura aproximada do footer */
+        }
+    </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-primary navbar-dark shadow-sm">
             <div class="container">
-                <a class="navbar-brand fw-bold" asp-page="/Index">OXF</a>
+                <a class="navbar-brand fw-bold" asp-page="/Index">OXFORD</a>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="collapse navbar-collapse" id="mainNav">
+
+                    <!-- menu padrão, alinhado à esquerda -->
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link" asp-page="/Index">Início</a>
+                            <a class="nav-link" asp-page="/Produtos">PRODUTOS</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-page="/Privacy">Privacidade</a>
+                            <a class="nav-link" asp-page="/Importar">IMPORTAR</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/Produto">CONSULTAR</a>
                         </li>
                     </ul>
+
+                    <!-- bloco do usuário autenticado, alinhado à direita -->
+                    <ul class="navbar-nav ms-auto">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            var username = User.Identity.Name;
+                            var token = User.Claims.FirstOrDefault(c => c.Type == "JwtToken")?.Value;
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-white"
+                                   href="#" id="userDropdown"
+                                   role="button" data-bs-toggle="dropdown"
+                                   aria-expanded="false">
+                                    @username
+                                </a>
+
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li class="dropdown-item-text fw-semibold">Token:</li>
+                                    <li>
+                                        <span class="dropdown-item-text text-break small">@token</span>
+                                    </li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" asp-page="/Logout">Sair</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+
                 </div>
             </div>
         </nav>
@@ -40,7 +90,8 @@
 
     <footer class="bg-light text-center py-3 mt-auto border-top">
         <div class="container">
-            &copy; @DateTime.Now.Year - OXF - <a asp-page="/Privacy">Privacidade</a>
+            <a asp-page="/Privacy" style="text-decoration: none;">Privacidade</a> |
+            © 2025 Oxford Porcelanas. Todos os direitos reservados.
         </div>
     </footer>
 

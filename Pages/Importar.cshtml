@@ -1,0 +1,36 @@
+﻿@page
+@model OXF.Pages.ImportarModel
+@{
+    ViewData["Title"] = "Importar Produtos";
+}
+
+<h1 class="mb-4">@ViewData["Title"]</h1>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+else if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert alert-success">@Model.SuccessMessage</div>
+}
+
+<form method="post" enctype="multipart/form-data" novalidate onsubmit="showProgressBar()">
+    <div class="mb-3">
+        <label for="arquivoImportacao" class="form-label">Escolha o arquivo (txt ou csv)</label>
+        <input class="form-control" type="file" id="arquivoImportacao" name="ArquivoImportacao" accept=".txt,.csv" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Importar</button>
+</form>
+
+<!-- Barra de progresso (indeterminada) -->
+@await Html.PartialAsync("_ProgressBar")
+
+@section Scripts {
+    <script>
+        function showProgressBar() {
+            document.getElementById("progress-container")?.classList.remove("d-none");
+        }
+    </script>
+}
