@@ -17,8 +17,25 @@
     <div class="row">
         <div class="col-12">
 
+            <!-- Aba de Informações de Imagens -->
             <div class="info-tab">
-                <div class="info-header" onclick="toggleTab(this)">INFORMAÇÕES DE IMAGENS</div>
+                <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
+                    <span class="fw-semibold text-uppercase">Informações de Imagens</span>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event)">
+                            <img src="~/images/icons/add-picture.png" alt="Adicionar" class="icon-img" />
+                        </button>
+
+                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation()">
+                            <img src="~/images/icons/rem-picture.png" alt="Remover" class="icon-img" />
+                        </button>
+
+                        <!-- Inputs de câmera e galeria -->
+                        <input type="file" id="imageInputCamera" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event)">
+                        <input type="file" id="imageInputGallery" accept="image/*" style="display:none" onchange="handleImageSelected(event)">
+                    </div>
+                </div>
+
                 <div class="info-content px-2 py-2">
 
                     <!-- Linha com Botões Embalagem e Paletização -->
@@ -60,6 +77,7 @@
                 </div>
             </div>
 
+            <!-- Outras abas -->
             <div class="info-tab">
                 <div class="info-header" onclick="toggleTab(this)">INFORMAÇÕES DO PRODUTO</div>
                 <div class="info-content px-2 py-2">
@@ -116,6 +134,13 @@
             margin-top: 0rem !important;
         }
 
+        .icon-img {
+            width: 48px; /* Ajuste conforme necessário */
+            height: 48px;
+            object-fit: contain;
+            pointer-events: none; /* garante que o clique vai para o botão, não para a imagem */
+        }
+
         .btn:hover,
         .btn:focus,
         .btn:active:focus,
@@ -127,7 +152,6 @@
             color: black;
         }
 
-        /* ===== ZOOM ===== */
         .zoom-container {
             position: relative;
             width: 100%;
@@ -137,9 +161,9 @@
             background-color: transparent;
         }
 
-            .zoom-container:hover {
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
-            }
+        .zoom-container:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+        }
 
         .zoom-img {
             width: 100%;
@@ -160,9 +184,7 @@
             }
         }
 
-        /* ===== MINIATURAS HORIZONTAIS ===== */
         .thumbnail-row {
-            /*max-width: 700px;*/
             margin: 0 auto;
             position: relative;
         }
@@ -195,7 +217,6 @@
                 transform: scale(1.08);
             }
 
-        /* ===== BOTÕES DO CARROSSEL ===== */
         .carousel-btn {
             position: absolute;
             top: 50%;
@@ -218,7 +239,6 @@
                 color: #000;
             }
 
-
             .carousel-btn:active {
                 transform: translateY(-50%) scale(0.95);
             }
@@ -231,25 +251,12 @@
                 right: 0px;
             }
 
-        @@media (max-width: 768px) {
-            .carousel-btn
-
-        {
-            width: 55px;
-            height: 55px;
-            font-size: 28px;
-        }
-
-        }
-
-        /* ===== ABAS ===== */
         .info-tab {
-            border: 0px;
+            border: 0;
             margin-bottom: 10px;
             border-radius: 1px;
             overflow: hidden;
             transition: all 0.3s ease;
-            cursor: default;
             width: 100%;
         }
 
@@ -284,18 +291,49 @@
             z-index: 2;
         }
 
+        .btn-dark, .btn-light {
+            border-radius: 0;
+            height: 40px;
+        }
+
         .btn-dark {
             background-color: #333;
             color: white;
-            border-radius: 0;
-            height: 40px;
         }
 
         .btn-light {
             background-color: #f4f4f4;
             color: black;
-            border-radius: 0;
+        }
+
+        .icon-btn {
+            background-color: #e9ecef;
+            border: 0px;
+            width: 40px;
             height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            font-size: 20px;
+            transition: background-color 0.2s ease, transform 0.15s ease;
+            margin-left: 16px;
+        }
+
+        /* Quando passa o mouse */
+        .icon-btn:hover {
+                background-color: #e9ecef;
+            cursor: pointer;
+            transform: scale(1.15); /* aumenta 15% */
+        }
+
+        /* Quando clica */
+        .icon-btn:active {
+            transform: scale(0.95); /* leve encolhida no clique */
+        }
+
+        .icon-btn i {
+            pointer-events: none;
         }
     </style>
 
@@ -303,8 +341,8 @@
         const zoomContainer = document.querySelector('.zoom-container');
         const zoomImg = document.getElementById('mainImage');
 
-        if (window.innerWidth > 768) {
-            zoomContainer?.addEventListener('mousemove', function (e) {
+        if (window.innerWidth > 768 && zoomContainer && zoomImg) {
+            zoomContainer.addEventListener('mousemove', function (e) {
                 const bounds = zoomContainer.getBoundingClientRect();
                 const x = e.clientX - bounds.left;
                 const y = e.clientY - bounds.top;
@@ -315,12 +353,13 @@
                 zoomImg.style.transform = `scale(2) translate(${-offsetX}%, ${-offsetY}%)`;
             });
 
-            zoomContainer?.addEventListener('mouseleave', function () {
+            zoomContainer.addEventListener('mouseleave', function () {
                 zoomImg.style.transform = 'scale(1)';
             });
         }
 
         function setMainImage(url) {
+            const zoomImg = document.getElementById('mainImage');
             zoomImg.src = url;
             document.querySelectorAll('.thumbnail-img').forEach(img => {
                 img.classList.remove("selected");
@@ -338,7 +377,6 @@
         function toggleTab(header) {
             const tab = header.parentElement;
             const isExpanded = tab.classList.contains('expanded');
-
             if (isExpanded) {
                 tab.classList.remove('expanded');
             } else {
@@ -346,5 +384,36 @@
                 tab.classList.add('expanded');
             }
         }
+
+        function triggerImageInput(event) {
+            event.stopPropagation();
+
+            if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+                const choice = confirm("Deseja abrir a câmera?");
+                if (choice) {
+                    document.getElementById('imageInputCamera').click();
+                } else {
+                    document.getElementById('imageInputGallery').click();
+                }
+            } else {
+                document.getElementById('imageInputGallery').click();
+            }
+        }
+
+        function handleImageSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const mainImage = document.getElementById('mainImage');
+                if (mainImage) {
+                    mainImage.src = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
     </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 }
