@@ -4,6 +4,8 @@
     ViewData["Title"] = "Produto";
 }
 
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery
+
 <div class="container my-5">
 
     <!-- Nome do Produto no topo -->
@@ -22,12 +24,17 @@
                 <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
                     <span class="fw-semibold text-uppercase">Informações de Imagens</span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event)">
-                            <img src="~/images/icons/add-picture.png" alt="Adicionar" class="icon-img" />
+
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" id="btnSalvarImagens" onclick="enviarImagens();">
+                            <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
 
-                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation()">
-                            <img src="~/images/icons/rem-picture.png" alt="Remover" class="icon-img" />
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event)">
+                            <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
+                        </button>
+
+                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage();">
+                            <img src="~/images/icons/rem-image.png" alt="Remover" class="icon-img" />
                         </button>
 
                         <!-- Inputs de câmera e galeria -->
@@ -135,10 +142,10 @@
         }
 
         .icon-img {
-            width: 48px; /* Ajuste conforme necessário */
+            width: 48px;
             height: 48px;
             object-fit: contain;
-            pointer-events: none; /* garante que o clique vai para o botão, não para a imagem */
+            pointer-events: none;
         }
 
         .btn:hover,
@@ -161,9 +168,9 @@
             background-color: transparent;
         }
 
-        .zoom-container:hover {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
-        }
+            .zoom-container:hover {
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+            }
 
         .zoom-img {
             width: 100%;
@@ -175,13 +182,16 @@
         }
 
         @@media (max-width: 768px) {
-            .zoom-container {
-                height: 350px;
-            }
+            .zoom-container
 
-            .zoom-img {
-                cursor: default;
-            }
+        {
+            height: 350px;
+        }
+
+        .zoom-img {
+            cursor: default;
+        }
+
         }
 
         .thumbnail-row {
@@ -320,21 +330,19 @@
             margin-left: 16px;
         }
 
-        /* Quando passa o mouse */
-        .icon-btn:hover {
+            .icon-btn:hover {
                 background-color: #e9ecef;
-            cursor: pointer;
-            transform: scale(1.15); /* aumenta 15% */
-        }
+                cursor: pointer;
+                transform: scale(1.15);
+            }
 
-        /* Quando clica */
-        .icon-btn:active {
-            transform: scale(0.95); /* leve encolhida no clique */
-        }
+            .icon-btn:active {
+                transform: scale(0.95);
+            }
 
-        .icon-btn i {
-            pointer-events: none;
-        }
+            .icon-btn i {
+                pointer-events: none;
+            }
     </style>
 
     <script>
@@ -367,6 +375,7 @@
                     img.classList.add("selected");
                 }
             });
+            currentImageIndex = imagens.findIndex(i => i === url);
         }
 
         function scrollThumbnail(direction) {
@@ -409,10 +418,127 @@
                 const mainImage = document.getElementById('mainImage');
                 if (mainImage) {
                     mainImage.src = e.target.result;
+                    // Optionally add to imagens array here
                 }
             };
             reader.readAsDataURL(file);
         }
+
+        // Inicializa com as imagens do modelo
+        let imagens = @Html.Raw(Json.Serialize(Model.Imagens));
+        let currentImageIndex = 0;
+
+        function removeCurrentImage() {
+            if (imagens.length === 0) return;
+
+            imagens.splice(currentImageIndex, 1);
+
+            if (imagens.length === 0) {
+                document.getElementById('mainImage').src = "";
+                document.getElementById('thumbContainer').innerHTML = "";
+                return;
+            }
+
+            // Atualiza imagem principal
+            const novaPrincipal = imagens[0];
+            setMainImage(novaPrincipal);
+
+            // Atualiza thumbnails
+            atualizarThumbnails();
+        }
+
+        function atualizarThumbnails() {
+            const container = document.getElementById("thumbContainer");
+            container.innerHTML = "";
+
+            imagens.forEach(img => {
+                const thumb = document.createElement("img");
+                thumb.src = img;
+                thumb.className = "img-thumbnail thumbnail-img";
+                thumb.style.cursor = "pointer";
+                thumb.onclick = () => setMainImage(img);
+                container.appendChild(thumb);
+            });
+        }
+
+        window.addEventListener("load", () => {
+            const img = document.getElementById('mainImage');
+            if (img && imagens.length > 0) {
+                currentImageIndex = imagens.findIndex(i => img.src.includes(i));
+                atualizarThumbnails();
+            }
+        });
+
+        function enviarImagens() {
+            if (!imagens || imagens.length === 0) {
+                alert("Nenhuma imagem para salvar.");
+                return;
+            }
+
+            const formData = new FormData();
+
+            imagens.forEach((dataUrl, index) => {
+                const base64Data = dataUrl.split(',')[1];
+                const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+                const byteString = atob(base64Data);
+                const ab = new ArrayBuffer(byteString.length);
+                const ia = new Uint8Array(ab);
+
+                for (let i = 0; i < byteString.length; i++) {
+                    ia[i] = byteString.charCodeAt(i);
+                }
+
+                const blob = new Blob([ab], { type: mimeString });
+                formData.append('files', blob, `imagem${index + 1}.${mimeString.split('/')[1] || 'jpg'}`);
+            });
+
+            const produtoId = '@Model.Produto?.ProductId';
+
+            const token = getCookie('RequestToken');
+            alert("token: "+token);
+            fetch(`?handler=UploadBase64&product=${produtoId}`, {
+                method: 'POST',
+                headers: {
+                    'RequestToken': token
+                },
+                body: formData
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    const text = await response.text();
+                    alert("Erro ao salvar imagens:\n" + text);
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    alert("Imagens salvas com sucesso!");
+                    window.location.reload();
+                } else {
+                    alert("Erro ao salvar imagens.");
+                }
+            })
+            .catch(error => {
+                console.error("Erro na requisição:", error);
+                alert("Falha na comunicação com o servidor.");
+            });
+        }
+
+        /* SALVAR IMAGENS NA API */
+
+        /* TOKEN */
+        document.cookie = "RequestToken=@antiforgery.GetAndStoreTokens(HttpContext).RequestToken; path=/";
+
+        function getCookie(name) {
+            const cookies = document.cookie.split(';');
+            for (const cookie of cookies) {
+                const [key, value] = cookie.trim().split('=');
+                if (key === name) return decodeURIComponent(value);
+            }
+            return null;
+        }
+        /* TOKEN */
+
     </script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />

@@ -25,6 +25,8 @@ builder.Services.AddAuthentication("CookieAuth")
         options.Cookie.SameSite = SameSiteMode.None;
     });
 
+builder.Services.AddAntiforgery(options => { options.HeaderName = "RequestToken"; });
+
 builder.Services.AddAuthorization();
 builder.Services.AddHttpClient();
 

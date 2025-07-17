@@ -7,9 +7,11 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.IO.Compression;
 
 namespace OXF.Pages;
 
+//[IgnoreAntiforgeryToken]
 public class ProdutoModel : PageModel
 {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -26,6 +28,56 @@ public class ProdutoModel : PageModel
     public ProdutoResponse Produto { get; set; }
     public List<string> Imagens { get; set; } = new();
     public string ErrorMessage { get; set; }
+
+    public string SuccessMessage { get; set; }
+
+    [BindProperty]
+    public List<IFormFile> NovasImagens { get; set; } = new();
+
+    public string Id { get; set; }
+
+    public class TesteRequest
+    {
+        public string Id { get; set; }
+    }
+
+    public async Task<IActionResult> OnPostUploadBase64Async(string product)
+    {
+        if (string.IsNullOrWhiteSpace(product) || !Request.Form.Files.Any())
+            return BadRequest("Nenhuma imagem enviada.");
+
+        try
+        {
+            var token = User.Claims.FirstOrDefault(c => c.Type == "JwtToken")?.Value;
+            if (string.IsNullOrWhiteSpace(token))
+                return Unauthorized();
+
+            var baseUrl = _configuration["ApiSettings:BaseUrl"];
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var content = new MultipartFormDataContent();
+
+            foreach (var file in Request.Form.Files)
+            {
+                var stream = file.OpenReadStream();
+                var streamContent = new StreamContent(stream);
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                content.Add(streamContent, "files", file.FileName);
+            }
+
+            var response = await client.PostAsync($"{baseUrl}/v1/Image/ReplaceProductImages/{product}", content);
+
+            if (!response.IsSuccessStatusCode)
+                return StatusCode((int)response.StatusCode, $"Erro ao salvar imagens: {response.ReasonPhrase}");
+
+            return new JsonResult(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro ao salvar imagens: {ex.Message}");
+        }
+    }
 
     public async Task<IActionResult> OnGetAsync(string id)
     {
@@ -57,33 +109,29 @@ public class ProdutoModel : PageModel
 
             Produto = await response.Content.ReadFromJsonAsync<ProdutoResponse>();
 
-            var imageUrl = $"{baseUrl}/v1/Image/Product/{produtoId}";
-            var imageResponse = await client.GetAsync(imageUrl);
-            if (imageResponse.IsSuccessStatusCode)
+            // Novo método com .zip das imagens do produto
+            var zipUrl = $"{baseUrl}/v1/Image/ProductImage/{produtoId}";
+            var zipResponse = await client.GetAsync(zipUrl);
+
+            if (zipResponse.IsSuccessStatusCode)
             {
-                var imagensDto = await imageResponse.Content.ReadFromJsonAsync<List<ImageDto>>();
-                var cacheFolder = Path.Combine(_env.WebRootPath, "images", "cache");
-                Directory.CreateDirectory(cacheFolder);
+                await using var zipStream = await zipResponse.Content.ReadAsStreamAsync();
+                using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
 
-                foreach (var img in imagensDto.Where(i => !string.IsNullOrWhiteSpace(i.ImagePath)))
+                foreach (var entry in archive.Entries)
                 {
-                    var ftpRelativePath = img.ImagePath.TrimStart('/').Replace('\\', '/');
-                    var fileName = Path.GetFileName(ftpRelativePath);
-                    var localFilePath = Path.Combine(cacheFolder, fileName);
+                    if (string.IsNullOrWhiteSpace(entry.Name)) continue;
 
-                    if (!System.IO.File.Exists(localFilePath))
-                    {
-                        try
-                        {
-                            await DownloadFileFromFtpAsync(ftpRelativePath, localFilePath);
-                        }
-                        catch
-                        {
-                            // erro ao baixar imagem, ignora e continua
-                        }
-                    }
+                    using var entryStream = entry.Open();
+                    using var ms = new MemoryStream();
+                    await entryStream.CopyToAsync(ms);
+                    var bytes = ms.ToArray();
 
-                    Imagens.Add($"/images/cache/{fileName}");
+                    var contentType = GetContentType(entry.Name);
+                    var base64 = Convert.ToBase64String(bytes);
+                    var dataUri = $"data:{contentType};base64,{base64}";
+
+                    Imagens.Add(dataUri);
                 }
             }
         }
@@ -96,25 +144,67 @@ public class ProdutoModel : PageModel
         return Page();
     }
 
-    private async Task DownloadFileFromFtpAsync(string ftpFilePath, string localFilePath)
+
+    /*
+    public async Task<IActionResult> OnPostAsync(string id)
     {
-        var ftpHost = "ftp.oxfordtec.com.br";
-        var ftpUser = "u700242432.oxfordftp";
-        var ftpPass = "OxforEstrutur@25";
+        if (string.IsNullOrWhiteSpace(id) || NovasImagens == null || !NovasImagens.Any())
+            return Page();
 
-        var ftpUri = new Uri($"ftp://{ftpHost}/{ftpFilePath}");
+        try
+        {
+            var token = User.Claims.FirstOrDefault(c => c.Type == "JwtToken")?.Value;
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                ErrorMessage = Messages.import.InvalidSession;
+                return RedirectToPage("/Login");
+            }
 
-        var request = (FtpWebRequest)WebRequest.Create(ftpUri);
-        request.Method = WebRequestMethods.Ftp.DownloadFile;
-        request.Credentials = new NetworkCredential(ftpUser, ftpPass);
-        request.UseBinary = true;
-        request.UsePassive = true;
-        request.KeepAlive = false;
+            var baseUrl = _configuration["ApiSettings:BaseUrl"];
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        using var response = (FtpWebResponse)await request.GetResponseAsync();
-        using var responseStream = response.GetResponseStream();
-        using var fileStream = System.IO.File.Create(localFilePath);
-        await responseStream.CopyToAsync(fileStream);
+            using var content = new MultipartFormDataContent();
+
+            foreach (var imagem in NovasImagens)
+            {
+                var stream = imagem.OpenReadStream();
+                var streamContent = new StreamContent(stream);
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue(imagem.ContentType);
+                content.Add(streamContent, "files", imagem.FileName);
+            }
+
+            var response = await client.PostAsync($"{baseUrl}/v1/Image/ReplaceProductImages/{id}", content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ErrorMessage = $"Erro ao enviar imagens: {response.ReasonPhrase}";
+            }
+            else
+            {
+                SuccessMessage = "Imagens atualizadas com sucesso!";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Erro ao enviar imagens: {ex.Message}";
+        }
+
+        return RedirectToPage(new { id });
+    }*/
+
+
+    private static string GetContentType(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+
+        return extension switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            _ => "application/octet-stream"
+        };
     }
 
     public class ProdutoResponse
