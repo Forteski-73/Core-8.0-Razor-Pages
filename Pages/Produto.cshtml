@@ -17,22 +17,22 @@
     <div class="row">
         <div class="col-12">
 
-            <!-- Aba: Imagens -->
+            <!-- Aba: DECORACAO -->
             <div class="info-tab">
                 <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
                     <span class="fw-semibold text-uppercase">DECORAÇÃO</span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" id="btnSalvarImagens" onclick="enviarImagens('Decoration');">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="enviarImagens('DECORACAO');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event)">
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event, 'DECORACAO')">
                             <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage();">
+                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage('DECORACAO');">
                             <img src="~/images/icons/rem-image.png" alt="Remover" class="icon-img" />
                         </button>
-                        <input type="file" id="imageInput_Decoration" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'Decoration')">
-                        <input type="file" id="imageInputGallery_Decoration" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'Decoration')">
+                        <input type="file" id="imageInputCamera_DECORACAO" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'DECORACAO')">
+                        <input type="file" id="imageInputGallery_DECORACAO" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'DECORACAO')">
                     </div>
                 </div>
 
@@ -40,19 +40,19 @@
                     @if (Model.ImgDecoration?.Any() == true)
                     {
                         <div class="text-center">
-                            <div class="zoom-container mx-auto mb-3">
-                                <img id="mainImage_Decoration" src="@Model.ImgDecoration.First()" class="zoom-img" />
+                            <div class="zoom-container mx-auto mb-3" data-finalidade="DECORACAO">
+                                <img id="mainImage_DECORACAO" src="@Model.ImgDecoration.First()" class="zoom-img" />
                             </div>
                             <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
-                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1)">&#10094;</button>
-                                <div id="thumbContainer" class="thumb-container-horizontal">
+                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1, 'DECORACAO')">&#10094;</button>
+                                <div id="thumbContainer_DECORACAO" class="thumb-container-horizontal">
                                     @for (int i = 0; i < Model.ImgDecoration.Count; i++)
                                     {
                                         var img = Model.ImgDecoration[i];
-                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','Decoration')" />
+                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','DECORACAO')" />
                                     }
                                 </div>
-                                <button class="carousel-btn next" onclick="scrollThumbnail(1)">&#10095;</button>
+                                <button class="carousel-btn next" onclick="scrollThumbnail(1, 'DECORACAO')">&#10095;</button>
                             </div>
                         </div>
                     }
@@ -63,22 +63,22 @@
                 </div>
             </div>
 
-            <!-- Aba: Embalagem -->
+            <!-- Aba: EMBALAGEM -->
             <div class="info-tab">
                 <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
                     <span class="fw-semibold text-uppercase">EMBALAGEM</span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" id="btnSalvarImagens" onclick="enviarImagens('Package');">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="enviarImagens('EMBALAGEM');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event)">
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event, 'EMBALAGEM')">
                             <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage();">
+                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage('EMBALAGEM');">
                             <img src="~/images/icons/rem-image.png" alt="Remover" class="icon-img" />
                         </button>
-                        <input type="file" id="imageInput_Package" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'Package')">
-                        <input type="file" id="imageInputGallery_Package" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'Package')">
+                        <input type="file" id="imageInputCamera_EMBALAGEM" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'EMBALAGEM')">
+                        <input type="file" id="imageInputGallery_EMBALAGEM" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'EMBALAGEM')">
                     </div>
                 </div>
 
@@ -86,19 +86,19 @@
                     @if (Model.ImgPackage?.Any() == true)
                     {
                         <div class="text-center">
-                            <div class="zoom-container mx-auto mb-3">
-                                <img id="mainImage_Package" src="@Model.ImgPackage.First()" class="zoom-img" />
+                            <div class="zoom-container mx-auto mb-3" data-finalidade="EMBALAGEM">
+                                <img id="mainImage_EMBALAGEM" src="@Model.ImgPackage.First()" class="zoom-img" />
                             </div>
                             <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
-                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1)">&#10094;</button>
-                                <div id="thumbContainer" class="thumb-container-horizontal">
+                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1, 'EMBALAGEM')">&#10094;</button>
+                                <div id="thumbContainer_EMBALAGEM" class="thumb-container-horizontal">
                                     @for (int i = 0; i < Model.ImgPackage.Count; i++)
                                     {
                                         var img = Model.ImgPackage[i];
-                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','Package')" />
+                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','EMBALAGEM')" />
                                     }
                                 </div>
-                                <button class="carousel-btn next" onclick="scrollThumbnail(1)">&#10095;</button>
+                                <button class="carousel-btn next" onclick="scrollThumbnail(1, 'EMBALAGEM')">&#10095;</button>
                             </div>
                         </div>
                     }
@@ -109,22 +109,22 @@
                 </div>
             </div>
 
-            <!-- Aba: Embalagem -->
+            <!-- Aba: PALETIZACAO -->
             <div class="info-tab">
                 <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
                     <span class="fw-semibold text-uppercase">PALETIZAÇÃO</span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" id="btnSalvarImagens" onclick="enviarImagens('Pallet');">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="enviarImagens('PALETIZACAO');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event)">
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event, 'PALETIZACAO')">
                             <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage();">
+                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage('PALETIZACAO');">
                             <img src="~/images/icons/rem-image.png" alt="Remover" class="icon-img" />
                         </button>
-                        <input type="file" id="imageInput_Pallet" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'Pallet')">
-                        <input type="file" id="imageInputGallery_Pallet" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'Pallet')">
+                        <input type="file" id="imageInputCamera_PALETIZACAO" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'PALETIZACAO')">
+                        <input type="file" id="imageInputGallery_PALETIZACAO" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'PALETIZACAO')">
                     </div>
                 </div>
 
@@ -132,19 +132,19 @@
                     @if (Model.ImgPallet?.Any() == true)
                     {
                         <div class="text-center">
-                            <div class="zoom-container mx-auto mb-3">
-                                <img id="mainImage_Pallet" src="@Model.ImgPallet.First()" class="zoom-img" />
+                            <div class="zoom-container mx-auto mb-3" data-finalidade="PALETIZACAO">
+                                <img id="mainImage_PALETIZACAO" src="@Model.ImgPallet.First()" class="zoom-img" />
                             </div>
                             <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
-                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1)">&#10094;</button>
-                                <div id="thumbContainer" class="thumb-container-horizontal">
+                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1, 'PALETIZACAO')">&#10094;</button>
+                                <div id="thumbContainer_PALETIZACAO" class="thumb-container-horizontal">
                                     @for (int i = 0; i < Model.ImgPallet.Count; i++)
                                     {
                                         var img = Model.ImgPallet[i];
-                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','Pallet')" />
+                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','PALETIZACAO')" />
                                     }
                                 </div>
-                                <button class="carousel-btn next" onclick="scrollThumbnail(1)">&#10095;</button>
+                                <button class="carousel-btn next" onclick="scrollThumbnail(1, 'PALETIZACAO')">&#10095;</button>
                             </div>
                         </div>
                     }
@@ -213,4 +213,3 @@
     <script src="~/js/produto.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 }
-
