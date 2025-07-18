@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.IO.Compression;
+using OxfordOnline.Models.Enums;
 
 namespace OXF.Pages;
 
@@ -26,7 +27,12 @@ public class ProdutoModel : PageModel
     }
 
     public ProdutoResponse Produto { get; set; }
-    public List<string> Imagens { get; set; } = new();
+    public List<string> ImgDecoration { get; set; } = new();
+
+    public List<string> ImgPackage { get; set; } = new();
+
+    public List<string> ImgPallet { get; set; } = new();
+
     public string ErrorMessage { get; set; }
 
     public string SuccessMessage { get; set; }
@@ -109,8 +115,16 @@ public class ProdutoModel : PageModel
 
             Produto = await response.Content.ReadFromJsonAsync<ProdutoResponse>();
 
+
+            // Carregar as três finalidades
+            ImgDecoration   = await LoadImagesFromZipAsync(client, baseUrl, produtoId, Finalidade.DECORACAO);
+            ImgPackage      = await LoadImagesFromZipAsync(client, baseUrl, produtoId, Finalidade.EMBALAGEM);
+            ImgPallet       = await LoadImagesFromZipAsync(client, baseUrl, produtoId, Finalidade.PALETIZACAO);
+        
+
+            /*
             // Novo método com .zip das imagens do produto
-            var zipUrl = $"{baseUrl}/v1/Image/ProductImage/{produtoId}";
+            var zipUrl = $"{baseUrl}/v1/Image/ProductImage/{produtoId}/{Finalidade.DECORACAO}";
             var zipResponse = await client.GetAsync(zipUrl);
 
             if (zipResponse.IsSuccessStatusCode)
@@ -131,9 +145,10 @@ public class ProdutoModel : PageModel
                     var base64 = Convert.ToBase64String(bytes);
                     var dataUri = $"data:{contentType};base64,{base64}";
 
-                    Imagens.Add(dataUri);
+                    ImgDecoration.Add(dataUri);
                 }
             }
+            */
         }
         catch (Exception ex)
         {
@@ -142,6 +157,37 @@ public class ProdutoModel : PageModel
         }
 
         return Page();
+    }
+
+    private async Task<List<string>> LoadImagesFromZipAsync(HttpClient client, string baseUrl, string produtoId, Finalidade finalidade)
+    {
+        var images = new List<string>();
+        var zipUrl = $"{baseUrl}/v1/Image/ProductImage/{produtoId}/{finalidade}";
+        var zipResponse = await client.GetAsync(zipUrl);
+
+        if (zipResponse.IsSuccessStatusCode)
+        {
+            await using var zipStream = await zipResponse.Content.ReadAsStreamAsync();
+            using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+
+            foreach (var entry in archive.Entries)
+            {
+                if (string.IsNullOrWhiteSpace(entry.Name)) continue;
+
+                using var entryStream = entry.Open();
+                using var ms = new MemoryStream();
+                await entryStream.CopyToAsync(ms);
+                var bytes = ms.ToArray();
+
+                var contentType = GetContentType(entry.Name);
+                var base64 = Convert.ToBase64String(bytes);
+                var dataUri = $"data:{contentType};base64,{base64}";
+
+                images.Add(dataUri);
+            }
+        }
+
+        return images;
     }
 
 
@@ -206,6 +252,7 @@ public class ProdutoModel : PageModel
             _ => "application/octet-stream"
         };
     }
+
 
     public class ProdutoResponse
     {

@@ -3,74 +3,145 @@
 @{
     ViewData["Title"] = "Produto";
 }
-
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery
 
 <div class="container my-5">
-
-    <!-- Nome do Produto no topo -->
+    <!-- Nome do Produto -->
     <div class="row mb-4">
         <div class="col-12">
             <h2 class="text-uppercase fw-bold">@Model.Produto?.ProductName</h2>
         </div>
     </div>
 
-    <!-- Abas expansíveis em coluna única -->
+    <!-- Conteúdo -->
     <div class="row">
         <div class="col-12">
 
-            <!-- Aba de Informações de Imagens -->
+            <!-- Aba: Imagens -->
             <div class="info-tab">
                 <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
-                    <span class="fw-semibold text-uppercase">Informações de Imagens</span>
+                    <span class="fw-semibold text-uppercase">DECORAÇÃO</span>
                     <div class="d-flex gap-1">
-
-                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" id="btnSalvarImagens" onclick="enviarImagens();">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" id="btnSalvarImagens" onclick="enviarImagens('Decoration');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-
                         <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event)">
                             <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
                         </button>
-
                         <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage();">
                             <img src="~/images/icons/rem-image.png" alt="Remover" class="icon-img" />
                         </button>
-
-                        <!-- Inputs de câmera e galeria -->
-                        <input type="file" id="imageInputCamera" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event)">
-                        <input type="file" id="imageInputGallery" accept="image/*" style="display:none" onchange="handleImageSelected(event)">
+                        <input type="file" id="imageInput_Decoration" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'Decoration')">
+                        <input type="file" id="imageInputGallery_Decoration" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'Decoration')">
                     </div>
                 </div>
 
                 <div class="info-content px-2 py-2">
-
-                    <!-- Linha com Botões Embalagem e Paletização -->
-                    <div class="row mb-3 g-2">
-                        <div class="col-12 col-md-6">
-                            <button class="btn btn-dark fw-semibold w-100" type="button">Embalagem</button>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <button class="btn btn-light border fw-semibold w-100" type="button">Paletização</button>
-                        </div>
-                    </div>
-
-                    @if (Model.Imagens?.Any() == true)
+                    @if (Model.ImgDecoration?.Any() == true)
                     {
                         <div class="text-center">
-                            <!-- Imagem principal -->
                             <div class="zoom-container mx-auto mb-3">
-                                <img id="mainImage" src="@Model.Imagens.First()" class="zoom-img" />
+                                <img id="mainImage_Decoration" src="@Model.ImgDecoration.First()" class="zoom-img" />
                             </div>
-
-                            <!-- Miniaturas horizontais com botões -->
                             <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
                                 <button class="carousel-btn prev" onclick="scrollThumbnail(-1)">&#10094;</button>
                                 <div id="thumbContainer" class="thumb-container-horizontal">
-                                    @for (int i = 0; i < Model.Imagens.Count; i++)
+                                    @for (int i = 0; i < Model.ImgDecoration.Count; i++)
                                     {
-                                        var img = Model.Imagens[i];
-                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img')" />
+                                        var img = Model.ImgDecoration[i];
+                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','Decoration')" />
+                                    }
+                                </div>
+                                <button class="carousel-btn next" onclick="scrollThumbnail(1)">&#10095;</button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Nenhuma imagem disponível.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Aba: Embalagem -->
+            <div class="info-tab">
+                <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
+                    <span class="fw-semibold text-uppercase">EMBALAGEM</span>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" id="btnSalvarImagens" onclick="enviarImagens('Package');">
+                            <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
+                        </button>
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event)">
+                            <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
+                        </button>
+                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage();">
+                            <img src="~/images/icons/rem-image.png" alt="Remover" class="icon-img" />
+                        </button>
+                        <input type="file" id="imageInput_Package" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'Package')">
+                        <input type="file" id="imageInputGallery_Package" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'Package')">
+                    </div>
+                </div>
+
+                <div class="info-content px-2 py-2">
+                    @if (Model.ImgPackage?.Any() == true)
+                    {
+                        <div class="text-center">
+                            <div class="zoom-container mx-auto mb-3">
+                                <img id="mainImage_Package" src="@Model.ImgPackage.First()" class="zoom-img" />
+                            </div>
+                            <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
+                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1)">&#10094;</button>
+                                <div id="thumbContainer" class="thumb-container-horizontal">
+                                    @for (int i = 0; i < Model.ImgPackage.Count; i++)
+                                    {
+                                        var img = Model.ImgPackage[i];
+                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','Package')" />
+                                    }
+                                </div>
+                                <button class="carousel-btn next" onclick="scrollThumbnail(1)">&#10095;</button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Nenhuma imagem disponível.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Aba: Embalagem -->
+            <div class="info-tab">
+                <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
+                    <span class="fw-semibold text-uppercase">PALETIZAÇÃO</span>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" id="btnSalvarImagens" onclick="enviarImagens('Pallet');">
+                            <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
+                        </button>
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event)">
+                            <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
+                        </button>
+                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage();">
+                            <img src="~/images/icons/rem-image.png" alt="Remover" class="icon-img" />
+                        </button>
+                        <input type="file" id="imageInput_Pallet" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'Pallet')">
+                        <input type="file" id="imageInputGallery_Pallet" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'Pallet')">
+                    </div>
+                </div>
+
+                <div class="info-content px-2 py-2">
+                    @if (Model.ImgPallet?.Any() == true)
+                    {
+                        <div class="text-center">
+                            <div class="zoom-container mx-auto mb-3">
+                                <img id="mainImage_Pallet" src="@Model.ImgPallet.First()" class="zoom-img" />
+                            </div>
+                            <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
+                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1)">&#10094;</button>
+                                <div id="thumbContainer" class="thumb-container-horizontal">
+                                    @for (int i = 0; i < Model.ImgPallet.Count; i++)
+                                    {
+                                        var img = Model.ImgPallet[i];
+                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','Pallet')" />
                                     }
                                 </div>
                                 <button class="carousel-btn next" onclick="scrollThumbnail(1)">&#10095;</button>
@@ -130,416 +201,16 @@
                     <p>Em construção !!!</p>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/produto.css" />
+}
+
 @section Scripts {
-    <style>
-        .my-5 {
-            margin-top: 0rem !important;
-        }
-
-        .icon-img {
-            width: 48px;
-            height: 48px;
-            object-fit: contain;
-            pointer-events: none;
-        }
-
-        .btn:hover,
-        .btn:focus,
-        .btn:active:focus,
-        .btn-link.nav-link:focus,
-        .form-control:focus,
-        .form-check-input:focus {
-            background-color: #f4f4f4 !important;
-            box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #f4f4f4;
-            color: black;
-        }
-
-        .zoom-container {
-            position: relative;
-            width: 100%;
-            max-width: 700px;
-            height: 500px;
-            overflow: hidden;
-            background-color: transparent;
-        }
-
-            .zoom-container:hover {
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
-            }
-
-        .zoom-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            transition: transform 0.1s ease;
-            cursor: crosshair;
-            transform-origin: center center;
-        }
-
-        @@media (max-width: 768px) {
-            .zoom-container
-
-        {
-            height: 350px;
-        }
-
-        .zoom-img {
-            cursor: default;
-        }
-
-        }
-
-        .thumbnail-row {
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .thumb-container-horizontal {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            padding: 10px 0;
-            scroll-behavior: smooth;
-        }
-
-            .thumb-container-horizontal::-webkit-scrollbar {
-                display: none;
-            }
-
-        .thumbnail-img {
-            height: 100px;
-            width: 100px;
-            object-fit: cover;
-            border-radius: 4px;
-            transition: transform 0.2s ease;
-        }
-
-            .thumbnail-img.selected {
-                border: 2px solid #007bff;
-            }
-
-            .thumbnail-img:hover {
-                transform: scale(1.08);
-            }
-
-        .carousel-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.8);
-            border: none;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            font-size: 25px;
-            color: #333;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-            cursor: pointer;
-            z-index: 5;
-            transition: all 0.2s ease;
-        }
-
-            .carousel-btn:hover {
-                background: rgba(233, 236, 239, 0.9);
-                color: #000;
-            }
-
-            .carousel-btn:active {
-                transform: translateY(-50%) scale(0.95);
-            }
-
-            .carousel-btn.prev {
-                left: 0px;
-            }
-
-            .carousel-btn.next {
-                right: 0px;
-            }
-
-        .info-tab {
-            border: 0;
-            margin-bottom: 10px;
-            border-radius: 1px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .info-header {
-            padding: 0.75rem 1rem;
-            font-weight: 600;
-            background-color: #e9ecef;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .info-content {
-            max-height: 0;
-            opacity: 0;
-            transition: all 0.3s ease;
-            padding: 0 1rem;
-            overflow: hidden;
-        }
-
-            .info-tab.expanded .info-content,
-            .info-content.show {
-                max-height: 2800px;
-                opacity: 1;
-                padding-top: 0.75rem;
-                padding-bottom: 0.75rem;
-            }
-
-        .info-tab.expanded:first-of-type {
-            max-height: 2800px;
-            width: 100%;
-            position: relative;
-            z-index: 2;
-        }
-
-        .btn-dark, .btn-light {
-            border-radius: 0;
-            height: 40px;
-        }
-
-        .btn-dark {
-            background-color: #333;
-            color: white;
-        }
-
-        .btn-light {
-            background-color: #f4f4f4;
-            color: black;
-        }
-
-        .icon-btn {
-            background-color: #e9ecef;
-            border: 0px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            font-size: 20px;
-            transition: background-color 0.2s ease, transform 0.15s ease;
-            margin-left: 16px;
-        }
-
-            .icon-btn:hover {
-                background-color: #e9ecef;
-                cursor: pointer;
-                transform: scale(1.15);
-            }
-
-            .icon-btn:active {
-                transform: scale(0.95);
-            }
-
-            .icon-btn i {
-                pointer-events: none;
-            }
-    </style>
-
-    <script>
-        const zoomContainer = document.querySelector('.zoom-container');
-        const zoomImg = document.getElementById('mainImage');
-
-        if (window.innerWidth > 768 && zoomContainer && zoomImg) {
-            zoomContainer.addEventListener('mousemove', function (e) {
-                const bounds = zoomContainer.getBoundingClientRect();
-                const x = e.clientX - bounds.left;
-                const y = e.clientY - bounds.top;
-                const percentX = x / bounds.width;
-                const percentY = y / bounds.height;
-                const offsetX = (percentX - 0.5) * 100;
-                const offsetY = (percentY - 0.5) * 100;
-                zoomImg.style.transform = `scale(2) translate(${-offsetX}%, ${-offsetY}%)`;
-            });
-
-            zoomContainer.addEventListener('mouseleave', function () {
-                zoomImg.style.transform = 'scale(1)';
-            });
-        }
-
-        function setMainImage(url) {
-            const zoomImg = document.getElementById('mainImage');
-            zoomImg.src = url;
-            document.querySelectorAll('.thumbnail-img').forEach(img => {
-                img.classList.remove("selected");
-                if (img.src === url || img.src.includes(url)) {
-                    img.classList.add("selected");
-                }
-            });
-            currentImageIndex = imagens.findIndex(i => i === url);
-        }
-
-        function scrollThumbnail(direction) {
-            const container = document.getElementById("thumbContainer");
-            container.scrollBy({ left: direction * 150, behavior: 'smooth' });
-        }
-
-        function toggleTab(header) {
-            const tab = header.parentElement;
-            const isExpanded = tab.classList.contains('expanded');
-            if (isExpanded) {
-                tab.classList.remove('expanded');
-            } else {
-                document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('expanded'));
-                tab.classList.add('expanded');
-            }
-        }
-
-        function triggerImageInput(event) {
-            event.stopPropagation();
-
-            if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
-                const choice = confirm("Deseja abrir a câmera?");
-                if (choice) {
-                    document.getElementById('imageInputCamera').click();
-                } else {
-                    document.getElementById('imageInputGallery').click();
-                }
-            } else {
-                document.getElementById('imageInputGallery').click();
-            }
-        }
-
-        function handleImageSelected(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const mainImage = document.getElementById('mainImage');
-                if (mainImage) {
-                    mainImage.src = e.target.result;
-                    // Optionally add to imagens array here
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Inicializa com as imagens do modelo
-        let imagens = @Html.Raw(Json.Serialize(Model.Imagens));
-        let currentImageIndex = 0;
-
-        function removeCurrentImage() {
-            if (imagens.length === 0) return;
-
-            imagens.splice(currentImageIndex, 1);
-
-            if (imagens.length === 0) {
-                document.getElementById('mainImage').src = "";
-                document.getElementById('thumbContainer').innerHTML = "";
-                return;
-            }
-
-            // Atualiza imagem principal
-            const novaPrincipal = imagens[0];
-            setMainImage(novaPrincipal);
-
-            // Atualiza thumbnails
-            atualizarThumbnails();
-        }
-
-        function atualizarThumbnails() {
-            const container = document.getElementById("thumbContainer");
-            container.innerHTML = "";
-
-            imagens.forEach(img => {
-                const thumb = document.createElement("img");
-                thumb.src = img;
-                thumb.className = "img-thumbnail thumbnail-img";
-                thumb.style.cursor = "pointer";
-                thumb.onclick = () => setMainImage(img);
-                container.appendChild(thumb);
-            });
-        }
-
-        window.addEventListener("load", () => {
-            const img = document.getElementById('mainImage');
-            if (img && imagens.length > 0) {
-                currentImageIndex = imagens.findIndex(i => img.src.includes(i));
-                atualizarThumbnails();
-            }
-        });
-
-        function enviarImagens() {
-            if (!imagens || imagens.length === 0) {
-                alert("Nenhuma imagem para salvar.");
-                return;
-            }
-
-            const formData = new FormData();
-
-            imagens.forEach((dataUrl, index) => {
-                const base64Data = dataUrl.split(',')[1];
-                const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
-                const byteString = atob(base64Data);
-                const ab = new ArrayBuffer(byteString.length);
-                const ia = new Uint8Array(ab);
-
-                for (let i = 0; i < byteString.length; i++) {
-                    ia[i] = byteString.charCodeAt(i);
-                }
-
-                const blob = new Blob([ab], { type: mimeString });
-                formData.append('files', blob, `imagem${index + 1}.${mimeString.split('/')[1] || 'jpg'}`);
-            });
-
-            const produtoId = '@Model.Produto?.ProductId';
-
-            const token = getCookie('RequestToken');
-            alert("token: "+token);
-            fetch(`?handler=UploadBase64&product=${produtoId}`, {
-                method: 'POST',
-                headers: {
-                    'RequestToken': token
-                },
-                body: formData
-            })
-            .then(async response => {
-                if (!response.ok) {
-                    const text = await response.text();
-                    alert("Erro ao salvar imagens:\n" + text);
-                    return;
-                }
-
-                const data = await response.json();
-                if (data.success) {
-                    alert("Imagens salvas com sucesso!");
-                    window.location.reload();
-                } else {
-                    alert("Erro ao salvar imagens.");
-                }
-            })
-            .catch(error => {
-                console.error("Erro na requisição:", error);
-                alert("Falha na comunicação com o servidor.");
-            });
-        }
-
-        /* SALVAR IMAGENS NA API */
-
-        /* TOKEN */
-        document.cookie = "RequestToken=@antiforgery.GetAndStoreTokens(HttpContext).RequestToken; path=/";
-
-        function getCookie(name) {
-            const cookies = document.cookie.split(';');
-            for (const cookie of cookies) {
-                const [key, value] = cookie.trim().split('=');
-                if (key === name) return decodeURIComponent(value);
-            }
-            return null;
-        }
-        /* TOKEN */
-
-    </script>
-
+    <script src="~/js/produto.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 }
+
