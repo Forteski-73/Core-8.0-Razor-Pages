@@ -220,8 +220,15 @@ function enviarImagens(finalidade) {
         for (let i = 0; i < byteString.length; i++) {
             ia[i] = byteString.charCodeAt(i);
         }
-        const blob = new Blob([ab], { type: mimeString });
-        formData.append('files', blob, `imagem${index + 1}.${mimeString.split('/')[1] || 'jpg'}`);
+
+    const blob = new Blob([ab], { type: mimeString });
+    
+    // Gera nome: 0001.jpg, 0002.png, 0003.png etc.
+    const numero = String(index + 1).padStart(4, '0');
+    const extensao = mimeString.split('/')[1] || 'jpg';
+    const nomeArquivo = `${numero}.${extensao}`;
+
+    formData.append('files', blob, nomeArquivo);
     });
     const produtoId = window.produtoId;
 

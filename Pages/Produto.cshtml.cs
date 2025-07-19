@@ -73,7 +73,7 @@ public class ProdutoModel : PageModel
                 content.Add(streamContent, "files", file.FileName);
             }
 
-            var response = await client.PostAsync($"{baseUrl}/v1/Image/ReplaceProductImages/{product}", content);
+            var response = await client.PostAsync($"{baseUrl}/v1/Image/ReplaceProductImages/{product}/{finalidade}", content);
 
             if (!response.IsSuccessStatusCode)
                 return StatusCode((int)response.StatusCode, $"Erro ao salvar imagens: {response.ReasonPhrase}");
