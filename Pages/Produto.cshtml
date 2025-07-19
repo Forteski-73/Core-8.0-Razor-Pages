@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Produto";
 }
+
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery
 
 <div class="container my-5">
@@ -22,10 +23,10 @@
                 <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
                     <span class="fw-semibold text-uppercase">DECORAÇÃO</span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="enviarImagens('DECORACAO');">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="event.stopPropagation(); enviarImagens('DECORACAO');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event, 'DECORACAO')">
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="event.stopPropagation(); triggerImageInput(event, 'DECORACAO')">
                             <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
                         </button>
                         <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage('DECORACAO');">
@@ -68,10 +69,10 @@
                 <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
                     <span class="fw-semibold text-uppercase">EMBALAGEM</span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="enviarImagens('EMBALAGEM');">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="event.stopPropagation(); enviarImagens('EMBALAGEM');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event, 'EMBALAGEM')">
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="event.stopPropagation(); triggerImageInput(event, 'EMBALAGEM')">
                             <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
                         </button>
                         <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage('EMBALAGEM');">
@@ -114,10 +115,10 @@
                 <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
                     <span class="fw-semibold text-uppercase">PALETIZAÇÃO</span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="enviarImagens('PALETIZACAO');">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="event.stopPropagation(); enviarImagens('PALETIZACAO');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput(event, 'PALETIZACAO')">
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="event.stopPropagation(); triggerImageInput(event, 'PALETIZACAO')">
                             <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
                         </button>
                         <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage('PALETIZACAO');">
@@ -129,29 +130,29 @@
                 </div>
 
                 <div class="info-content px-2 py-2">
-                    @if (Model.ImgPallet?.Any() == true)
-                    {
-                        <div class="text-center">
-                            <div class="zoom-container mx-auto mb-3" data-finalidade="PALETIZACAO">
-                                <img id="mainImage_PALETIZACAO" src="@Model.ImgPallet.First()" class="zoom-img" />
-                            </div>
-                            <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
-                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1, 'PALETIZACAO')">&#10094;</button>
-                                <div id="thumbContainer_PALETIZACAO" class="thumb-container-horizontal">
+                    <div class="text-center">
+                        <div class="zoom-container mx-auto mb-3" data-finalidade="PALETIZACAO">
+                            <img id="mainImage_PALETIZACAO" src="@(Model.ImgPallet?.FirstOrDefault() ?? Url.Content("~/img/not-found.jpg"))" class="zoom-img" />
+                        </div>
+                        <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
+                            <button class="carousel-btn prev" onclick="scrollThumbnail(-1, 'PALETIZACAO')">&#10094;</button>
+                            <div id="thumbContainer_PALETIZACAO" class="thumb-container-horizontal">
+                                @if (Model.ImgPallet?.Any() == true)
+                                {
                                     @for (int i = 0; i < Model.ImgPallet.Count; i++)
                                     {
                                         var img = Model.ImgPallet[i];
                                         <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','PALETIZACAO')" />
                                     }
-                                </div>
-                                <button class="carousel-btn next" onclick="scrollThumbnail(1, 'PALETIZACAO')">&#10095;</button>
+                                }
+                                else
+                                {
+                                    <!-- Nenhuma miniatura se não houver imagens -->
+                                }
                             </div>
+                            <button class="carousel-btn next" onclick="scrollThumbnail(1, 'PALETIZACAO')">&#10095;</button>
                         </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted">Nenhuma imagem disponível.</p>
-                    }
+                    </div>
                 </div>
             </div>
 
@@ -210,6 +211,26 @@
 }
 
 @section Scripts {
+    @* Extrai o token no servidor *@
+    @{
+        var token = antiforgery.GetAndStoreTokens(HttpContext);
+    }
+
+    <script>
+        window.produtoId = '@Model.Produto?.ProductId';
+        window.token = '@token.RequestToken';
+
+        window.imagens = {
+            EMBALAGEM: @Html.Raw(Json.Serialize(Model.ImgPackage ?? new List<string>())),
+            DECORACAO: @Html.Raw(Json.Serialize(Model.ImgDecoration ?? new List<string>())),
+            PALETIZACAO: @Html.Raw(Json.Serialize(Model.ImgPallet ?? new List<string>()))
+        };
+
+        window.currentImageIndex_EMBALAGEM = (window.imagens.EMBALAGEM.length > 0) ? 0 : -1;
+        window.currentImageIndex_DECORACAO = (window.imagens.DECORACAO.length > 0) ? 0 : -1;
+        window.currentImageIndex_PALETIZACAO = (window.imagens.PALETIZACAO.length > 0) ? 0 : -1;
+    </script>
+
     <script src="~/js/produto.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 }

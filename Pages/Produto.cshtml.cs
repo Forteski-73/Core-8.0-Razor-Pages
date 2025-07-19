@@ -47,7 +47,8 @@ public class ProdutoModel : PageModel
         public string Id { get; set; }
     }
 
-    public async Task<IActionResult> OnPostUploadBase64Async(string product)
+
+    public async Task<IActionResult> OnPostUploadBase64Async(string product, Finalidade finalidade)
     {
         if (string.IsNullOrWhiteSpace(product) || !Request.Form.Files.Any())
             return BadRequest("Nenhuma imagem enviada.");
@@ -84,6 +85,46 @@ public class ProdutoModel : PageModel
             return StatusCode(500, $"Erro ao salvar imagens: {ex.Message}");
         }
     }
+
+    /*
+    public async Task<IActionResult> OnPostUploadBase64Async([FromQuery] string product)
+    {
+        if (string.IsNullOrWhiteSpace(product) || !Request.Form.Files.Any())
+            return BadRequest("Nenhuma imagem enviada.");
+
+        try
+        {
+            var token = User.Claims.FirstOrDefault(c => c.Type == "JwtToken")?.Value;
+            if (string.IsNullOrWhiteSpace(token))
+                return Unauthorized();
+
+            var baseUrl = _configuration["ApiSettings:BaseUrl"];
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var content = new MultipartFormDataContent();
+
+            foreach (var file in Request.Form.Files)
+            {
+                var stream = file.OpenReadStream();
+                var streamContent = new StreamContent(stream);
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                content.Add(streamContent, "files", file.FileName);
+            }
+
+            var response = await client.PostAsync($"{baseUrl}/v1/Image/ReplaceProductImages/{product}", content);
+
+            if (!response.IsSuccessStatusCode)
+                return StatusCode((int)response.StatusCode, $"Erro ao salvar imagens: {response.ReasonPhrase}");
+
+            return new JsonResult(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro ao salvar imagens: {ex.Message}");
+        }
+    }
+    */
 
     public async Task<IActionResult> OnGetAsync(string id)
     {

@@ -9,11 +9,6 @@
     pointer-events: none;
 }
 
-.fw-semibold text-uppercase {
-    width: 100%;
-    text-transform: uppercase !important;
-}
-
 .btn:hover,
 .btn:focus,
 .btn:active:focus,

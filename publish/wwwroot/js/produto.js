@@ -5,7 +5,7 @@ window.imagens = {
     PALETIZACAO: []
 };
 
-// =========================== ZOOM ===========================
+// ======================= ZOOM =======================
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".zoom-container").forEach(zoomContainer => {
         const finalidade = zoomContainer.dataset.finalidade;
@@ -41,8 +41,7 @@ function setMainImage(src, finalidade) {
     }
 
     document.querySelectorAll(`#thumbContainer_${finalidade} .thumbnail-img`).forEach(el => {
-        //el.classList.toggle("selected", el.src === src);
-        el.classList.toggle("selected", el.src === src || el.getAttribute("src") === src);
+        el.classList.toggle("selected", el.src === src);
     });
 }
 
@@ -62,7 +61,6 @@ function triggerImageInput(event, finalidade) {
 }
 
 // ======================= IMAGEM ESCOLHIDA =======================
-/*
 function handleImageSelected(event, finalidade) {
     const file = event.target.files[0];
     if (!file) return;
@@ -78,28 +76,6 @@ function handleImageSelected(event, finalidade) {
         window.imagens[finalidade].push(dataUrl);
         window["currentImageIndex_" + finalidade] = window.imagens[finalidade].length - 1;
 
-        setMainImage(dataUrl, finalidade);
-        atualizarThumbnails(finalidade);
-    };
-    reader.readAsDataURL(file);
-}*/
-
-function handleImageSelected(event, finalidade) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        const dataUrl = e.target.result;
-
-        // Garante que o array da finalidade exista
-        if (!window.imagens) window.imagens = {};
-        if (!window.imagens[finalidade]) window.imagens[finalidade] = [];
-
-        window.imagens[finalidade].push(dataUrl);
-
-        // Atualiza índice e imagem principal
-        window["currentImageIndex_" + finalidade] = window.imagens[finalidade].length - 1;
         setMainImage(dataUrl, finalidade);
         atualizarThumbnails(finalidade);
     };
@@ -147,7 +123,6 @@ function atualizarThumbnails(finalidade) {
 }
 
 // ======================= SALVAR IMAGENS =======================
-/*
 function enviarImagens(finalidade) {
     const imagens = window.imagens[finalidade];
 
@@ -172,12 +147,9 @@ function enviarImagens(finalidade) {
         formData.append('files', blob, `${numero}.${extensao}`);
     });
 
-
-    fetch(`?handler=UploadBase64&product=${window.produtoId}`, {
+    fetch(`?handler=UploadBase64&product=${window.produtoId}&finalidade=${finalidade}`, {
         method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${window.token}`
-        },
+        headers: { 'RequestToken': window.token },
         body: formData
     })
         .then(async response => {
@@ -200,58 +172,6 @@ function enviarImagens(finalidade) {
             alert(`Falha na comunicação com o servidor para ${finalidade}.`);
         });
 }
-*/
-
-function enviarImagens(finalidade) {
-    const imagens = window.imagens[finalidade];
-
-    if (!imagens || imagens.length === 0) {
-        alert("Nenhuma imagem para salvar.");
-        return;
-    }
-
-    const formData = new FormData();
-    imagens.forEach((dataUrl, index) => {
-        const base64Data = dataUrl.split(',')[1];
-        const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
-        const byteString = atob(base64Data);
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
-        for (let i = 0; i < byteString.length; i++) {
-            ia[i] = byteString.charCodeAt(i);
-        }
-        const blob = new Blob([ab], { type: mimeString });
-        formData.append('files', blob, `imagem${index + 1}.${mimeString.split('/')[1] || 'jpg'}`);
-    });
-    const produtoId = window.produtoId;
-
-    fetch(`?handler=UploadBase64&product=${produtoId}&finalidade=${finalidade}`, {
-        method: 'POST',
-        headers: {
-            'RequestToken': window.token
-        },
-        body: formData
-    })
-        .then(async response => {
-            if (!response.ok) {
-                const text = await response.text();
-                alert("Erro ao salvar imagens:\n" + text);
-                return;
-            }
-            const data = await response.json();
-            if (data.success) {
-                alert("Imagens salvas com sucesso!");
-                window.location.reload();
-            } else {
-                alert("Erro ao salvar imagens.");
-            }
-        })
-        .catch(error => {
-            console.error("Erro na requisição:", error);
-            alert("Falha na comunicação com o servidor.");
-        });
-}
-
 
 // ======================= SCROLL MINIATURAS =======================
 function scrollThumbnail(direction, finalidade) {
@@ -260,9 +180,7 @@ function scrollThumbnail(direction, finalidade) {
 }
 
 // ======================= TABS =======================
-
 function toggleTab(header) {
-
     const tab = header.parentElement;
     const isExpanded = tab.classList.contains('expanded');
     if (isExpanded) {
