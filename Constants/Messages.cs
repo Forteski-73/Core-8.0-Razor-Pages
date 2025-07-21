@@ -30,6 +30,8 @@ namespace OXF.Constants
             public const string InvalidData     = "Dados inválidos para importação.";
             public const string InvalidSession  = "Sessão expirada. Faça login novamente";
             public const string InvalidLine     = "Linha inválida. Esperado pelo menos 3 campos.";
+            public const string InvalidLine11   = "Linha inválida. Esperado pelo menos 11 campos.";
+            public const string InvalidLine8 = "Linha inválida. Esperado pelo menos 8 campos.";
             public const string InvalidLFormat  = "Formato inválido. Apenas arquivos .txt ou .csv são aceitos.";
             public const string FileRequired    = "Selecione um arquivo.";
             public const string ErrorImpBatch   = "Erro ao importar o lote";

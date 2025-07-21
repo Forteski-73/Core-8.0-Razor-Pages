@@ -1,7 +1,7 @@
 ﻿@page
 @model OXF.Pages.ImportarModel
 @{
-    ViewData["Title"] = "Importar Produtos";
+    ViewData["Title"] = "Importação de Dados";
 }
 
 <h1 class="mb-4">@ViewData["Title"]</h1>
@@ -16,6 +16,17 @@ else if (!string.IsNullOrEmpty(Model.SuccessMessage))
 }
 
 <form method="post" enctype="multipart/form-data" novalidate onsubmit="showProgressBar()">
+    <div class="mb-3">
+        <label for="tipoImportacao" class="form-label">Selecione o tipo de importação</label>
+        <select class="form-select" id="tipoImportacao" name="TipoImportacao" required>
+            <option value="" selected disabled>-- Escolha uma opção --</option>
+            <option value="produtos">Informações de Produtos</option>
+            <option value="estoque">Informações de Estoque</option>
+            <option value="oxford">Informações Oxford</option>
+            <option value="fiscal">Informações Fiscais</option>
+        </select>
+    </div>
+
     <div class="mb-3">
         <label for="arquivoImportacao" class="form-label">Escolha o arquivo (txt ou csv)</label>
         <input class="form-control" type="file" id="arquivoImportacao" name="ArquivoImportacao" accept=".txt,.csv" required />

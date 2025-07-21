@@ -11,8 +11,10 @@
 
         public static class Product
         {
-            //public const string ProductId     = "/v1/Product";
-            public const string Products = "/v1/Product";
+            public const string Products        = "/v1/Product";
+            public const string Invent          = "/v1/Invent";
+            public const string Oxford          = "/v1/Oxford";
+            public const string TaxInformation  = "/v1/TaxInformation";
         }
 
     }
