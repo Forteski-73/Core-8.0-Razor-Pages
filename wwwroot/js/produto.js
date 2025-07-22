@@ -46,21 +46,6 @@ function setMainImage(src, finalidade) {
     });
 }
 
-// ======================= INPUT DE IMAGEM =======================
-function triggerImageInput(event, finalidade) {
-    event.stopPropagation();
-
-    const cameraInputId = `imageInputCamera_${finalidade}`;
-    const galleryInputId = `imageInputGallery_${finalidade}`;
-
-    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
-        const choice = confirm("Deseja abrir a câmera?");
-        document.getElementById(choice ? cameraInputId : galleryInputId).click();
-    } else {
-        document.getElementById(galleryInputId).click();
-    }
-}
-
 // ======================= IMAGEM ESCOLHIDA =======================
 /*
 function handleImageSelected(event, finalidade) {
@@ -104,6 +89,20 @@ function handleImageSelected(event, finalidade) {
         atualizarThumbnails(finalidade);
     };
     reader.readAsDataURL(file);
+}
+
+// ======================= INPUT DE IMAGEM =======================
+function triggerImageInput(finalidade) {
+
+    const cameraInputId = `imageInputCamera_${finalidade}`;
+    const galleryInputId = `imageInputGallery_${finalidade}`;
+
+    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+        const choice = confirm("Deseja abrir a câmera?");
+        document.getElementById(choice ? cameraInputId : galleryInputId).click();
+    } else {
+        document.getElementById(galleryInputId).click();
+    }
 }
 
 // ======================= REMOVER IMAGEM =======================
@@ -267,20 +266,28 @@ function scrollThumbnail(direction, finalidade) {
 }
 
 // ======================= TABS =======================
+function toggleTab(header, idTab) {
 
-function toggleTab(header) {
-
-    const tab = header.parentElement;
-    const isExpanded = tab.classList.contains('expanded');
-    if (isExpanded) {
+    const tab = document.getElementById(idTab);
+    if (tab.classList.contains('expanded')) {
         tab.classList.remove('expanded');
     } else {
-        document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('expanded'));
         tab.classList.add('expanded');
     }
 }
+/*
+function toggleTab(header) {
+    //if (header.querySelector(':hover')?.closest('button')) return;
+    const tab = header.parentElement;
+    if (tab.classList.contains('expanded')) {
+        tab.classList.remove('expanded')
+    } else {
+        tab.classList.add('expanded');
+    }
+}*/
 
 // ======================= GET COOKIE =======================
+
 function getCookie(name) {
     const cookies = document.cookie.split(';');
     for (const cookie of cookies) {

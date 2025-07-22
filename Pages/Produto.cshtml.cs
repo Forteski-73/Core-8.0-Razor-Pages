@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
 using OXF.Constants;
+using OXF.Models;
 using OxfordOnline.Dtos;
+using OxfordOnline.Models.Enums;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.IO.Compression;
-using OxfordOnline.Models.Enums;
 
 namespace OXF.Pages;
 
@@ -18,12 +19,14 @@ public class ProdutoModel : PageModel
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
     private readonly IWebHostEnvironment _env;
+    private readonly string _baseUrl;
 
     public ProdutoModel(IHttpClientFactory httpClientFactory, IConfiguration configuration, IWebHostEnvironment env)
     {
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
         _env = env;
+        _baseUrl = _configuration["ApiSettings:BaseUrl"];
     }
 
     public ProdutoResponse Produto { get; set; }
@@ -32,6 +35,12 @@ public class ProdutoModel : PageModel
     public List<string> ImgPackage { get; set; } = new();
 
     public List<string> ImgPallet { get; set; } = new();
+
+    public Invent? Invent { get; set; }
+
+    public TaxInformation? TaxInformation { get; set; }
+
+    public Oxford? Oxford { get; set; }
 
     public string ErrorMessage { get; set; }
 
@@ -59,9 +68,8 @@ public class ProdutoModel : PageModel
             if (string.IsNullOrWhiteSpace(token))
                 return Unauthorized();
 
-            var baseUrl = _configuration["ApiSettings:BaseUrl"];
-            var client = _httpClientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var client = CreateHttpClientWithToken(token);
 
             using var content = new MultipartFormDataContent();
 
@@ -73,7 +81,7 @@ public class ProdutoModel : PageModel
                 content.Add(streamContent, "files", file.FileName);
             }
 
-            var response = await client.PostAsync($"{baseUrl}/v1/Image/ReplaceProductImages/{product}/{finalidade}", content);
+            var response = await client.PostAsync($"{_baseUrl}/v1/Image/ReplaceProductImages/{product}/{finalidade}", content);
 
             if (!response.IsSuccessStatusCode)
                 return StatusCode((int)response.StatusCode, $"Erro ao salvar imagens: {response.ReasonPhrase}");
@@ -86,45 +94,12 @@ public class ProdutoModel : PageModel
         }
     }
 
-    /*
-    public async Task<IActionResult> OnPostUploadBase64Async([FromQuery] string product)
+    private HttpClient CreateHttpClientWithToken(string token)
     {
-        if (string.IsNullOrWhiteSpace(product) || !Request.Form.Files.Any())
-            return BadRequest("Nenhuma imagem enviada.");
-
-        try
-        {
-            var token = User.Claims.FirstOrDefault(c => c.Type == "JwtToken")?.Value;
-            if (string.IsNullOrWhiteSpace(token))
-                return Unauthorized();
-
-            var baseUrl = _configuration["ApiSettings:BaseUrl"];
-            var client = _httpClientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            using var content = new MultipartFormDataContent();
-
-            foreach (var file in Request.Form.Files)
-            {
-                var stream = file.OpenReadStream();
-                var streamContent = new StreamContent(stream);
-                streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-                content.Add(streamContent, "files", file.FileName);
-            }
-
-            var response = await client.PostAsync($"{baseUrl}/v1/Image/ReplaceProductImages/{product}", content);
-
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, $"Erro ao salvar imagens: {response.ReasonPhrase}");
-
-            return new JsonResult(new { success = true });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Erro ao salvar imagens: {ex.Message}");
-        }
+        var client = _httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return client;
     }
-    */
 
     public async Task<IActionResult> OnGetAsync(string id)
     {
@@ -140,12 +115,10 @@ public class ProdutoModel : PageModel
                 return RedirectToPage("/Login");
             }
 
-            var baseUrl = _configuration["ApiSettings:BaseUrl"];
-            var client = _httpClientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var client = CreateHttpClientWithToken(token);
 
             var produtoId = id.PadLeft(5, '0');
-            var url = $"{baseUrl}/v1/Product/{produtoId}";
+            var url = $"{_baseUrl}/v1/Product/{produtoId}";
 
             var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode)
@@ -158,38 +131,15 @@ public class ProdutoModel : PageModel
 
 
             // Carregar as três finalidades
-            ImgDecoration   = await LoadImagesFromZipAsync(client, baseUrl, produtoId, Finalidade.DECORACAO);
-            ImgPackage      = await LoadImagesFromZipAsync(client, baseUrl, produtoId, Finalidade.EMBALAGEM);
-            ImgPallet       = await LoadImagesFromZipAsync(client, baseUrl, produtoId, Finalidade.PALETIZACAO);
-        
+            ImgDecoration   = await LoadImagesFromZipAsync(client, produtoId, Finalidade.DECORACAO);
+            ImgPackage      = await LoadImagesFromZipAsync(client, produtoId, Finalidade.EMBALAGEM);
+            ImgPallet       = await LoadImagesFromZipAsync(client, produtoId, Finalidade.PALETIZACAO);
 
-            /*
-            // Novo método com .zip das imagens do produto
-            var zipUrl = $"{baseUrl}/v1/Image/ProductImage/{produtoId}/{Finalidade.DECORACAO}";
-            var zipResponse = await client.GetAsync(zipUrl);
+            Invent = await GetInventFromApiAsync(client, produtoId);
 
-            if (zipResponse.IsSuccessStatusCode)
-            {
-                await using var zipStream = await zipResponse.Content.ReadAsStreamAsync();
-                using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+            TaxInformation = await GetTaxInformationFromApiAsync(client, produtoId);
 
-                foreach (var entry in archive.Entries)
-                {
-                    if (string.IsNullOrWhiteSpace(entry.Name)) continue;
-
-                    using var entryStream = entry.Open();
-                    using var ms = new MemoryStream();
-                    await entryStream.CopyToAsync(ms);
-                    var bytes = ms.ToArray();
-
-                    var contentType = GetContentType(entry.Name);
-                    var base64 = Convert.ToBase64String(bytes);
-                    var dataUri = $"data:{contentType};base64,{base64}";
-
-                    ImgDecoration.Add(dataUri);
-                }
-            }
-            */
+            Oxford = await GetOxfordFromApiAsync(client, produtoId);
         }
         catch (Exception ex)
         {
@@ -200,10 +150,64 @@ public class ProdutoModel : PageModel
         return Page();
     }
 
-    private async Task<List<string>> LoadImagesFromZipAsync(HttpClient client, string baseUrl, string produtoId, Finalidade finalidade)
+    private async Task<Invent?> GetInventFromApiAsync(HttpClient client, string productId)
+    {
+        var inventUrl = $"{_baseUrl}/v1/Invent/{productId}";
+
+        var response = await client.GetAsync(inventUrl);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        var invent = JsonSerializer.Deserialize<Invent>(json, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        return invent;
+    }
+
+    private async Task<TaxInformation?> GetTaxInformationFromApiAsync(HttpClient client, string productId)
+    {
+        var inventUrl = $"{_baseUrl}/v1/TaxInformation/{productId}";
+
+        var response = await client.GetAsync(inventUrl);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        var taxInformation = JsonSerializer.Deserialize<TaxInformation>(json, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        return taxInformation;
+    }
+
+    private async Task<Oxford?> GetOxfordFromApiAsync(HttpClient client, string productId)
+    {
+        var inventUrl = $"{_baseUrl}/v1/Oxford/{productId}";
+
+        var response = await client.GetAsync(inventUrl);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        var oxford = JsonSerializer.Deserialize<Oxford>(json, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        return oxford;
+    }
+
+    private async Task<List<string>> LoadImagesFromZipAsync(HttpClient client, string produtoId, Finalidade finalidade)
     {
         var images = new List<string>();
-        var zipUrl = $"{baseUrl}/v1/Image/ProductImage/{produtoId}/{finalidade}";
+        var zipUrl = $"{_baseUrl}/v1/Image/ProductImage/{produtoId}/{finalidade}";
         var zipResponse = await client.GetAsync(zipUrl);
 
         if (zipResponse.IsSuccessStatusCode)
@@ -230,56 +234,6 @@ public class ProdutoModel : PageModel
 
         return images;
     }
-
-
-    /*
-    public async Task<IActionResult> OnPostAsync(string id)
-    {
-        if (string.IsNullOrWhiteSpace(id) || NovasImagens == null || !NovasImagens.Any())
-            return Page();
-
-        try
-        {
-            var token = User.Claims.FirstOrDefault(c => c.Type == "JwtToken")?.Value;
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                ErrorMessage = Messages.import.InvalidSession;
-                return RedirectToPage("/Login");
-            }
-
-            var baseUrl = _configuration["ApiSettings:BaseUrl"];
-            var client = _httpClientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            using var content = new MultipartFormDataContent();
-
-            foreach (var imagem in NovasImagens)
-            {
-                var stream = imagem.OpenReadStream();
-                var streamContent = new StreamContent(stream);
-                streamContent.Headers.ContentType = new MediaTypeHeaderValue(imagem.ContentType);
-                content.Add(streamContent, "files", imagem.FileName);
-            }
-
-            var response = await client.PostAsync($"{baseUrl}/v1/Image/ReplaceProductImages/{id}", content);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                ErrorMessage = $"Erro ao enviar imagens: {response.ReasonPhrase}";
-            }
-            else
-            {
-                SuccessMessage = "Imagens atualizadas com sucesso!";
-            }
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Erro ao enviar imagens: {ex.Message}";
-        }
-
-        return RedirectToPage(new { id });
-    }*/
-
 
     private static string GetContentType(string fileName)
     {

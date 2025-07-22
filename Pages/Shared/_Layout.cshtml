@@ -21,13 +21,58 @@
         }
 
         main.container {
-            padding-bottom: 60px; /* Altura aproximada do footer */
+            padding-bottom: 60px; 
         }
 
         .py-3 {
             padding-top: .2rem !important;
             padding-bottom: .3rem !important;
         }
+
+        /* Menu */
+        .logo-img {
+            transition: transform 0.3s ease;
+        }
+
+            .logo-img:hover {
+                transform: scale(1.05);
+            }
+
+        .nav-link {
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover {
+            transform: scale(1.05);
+            color: #ffffff !important;
+        }
+        /* Menu */
+        /*Popup token*/
+        .user-dropdown {
+            min-width: 350px;
+            max-width: 500px;
+            font-size: 0.9rem;
+        }
+
+        .user-dropdown .dropdown-item-text,
+        .user-dropdown .text-break {
+            word-break: break-all;
+        }
+
+        .user-dropdown .fw-semibold {
+            color: #333;
+        }
+
+        .user-dropdown .dropdown-item.text-danger:hover {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .custom-user-toggle::after {
+            display: none !important;
+        }
+        /*Popup token*/
+
     </style>
     @RenderSection("Styles", required: false)
 </head>
@@ -35,7 +80,9 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-primary navbar-dark shadow-sm">
             <div class="container">
-                <a class="navbar-brand fw-bold" asp-page="/Index">OXFORD</a>
+                <a class="navbar-brand fw-bold" asp-page="/Index">
+                    <img src="/img/oxford-logo-b.png" alt="Oxford" class="logo-img" style="height: 60px;" />
+                </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                     <span class="navbar-toggler-icon"></span>
@@ -45,13 +92,13 @@
 
                     <!-- menu padrão, alinhado à esquerda -->
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
+                        <li class="nav-item me-3">
                             <a class="nav-link" asp-page="/Produtos">PRODUTOS</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item me-3">
                             <a class="nav-link" asp-page="/Importar">IMPORTAR</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item me-3">
                             <a class="nav-link" asp-page="/Produto">CONSULTAR</a>
                         </li>
                     </ul>
@@ -64,21 +111,29 @@
                             var token = User.Claims.FirstOrDefault(c => c.Type == "JwtToken")?.Value;
 
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-white"
+                                <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2 custom-user-toggle"
                                    href="#" id="userDropdown"
                                    role="button" data-bs-toggle="dropdown"
                                    aria-expanded="false">
-                                    @username
+                                    <img src="/img/user.png" alt="Usuário" style="width: 20px; height: 20px;">
+                                    <span>@username</span>
                                 </a>
-
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    <li class="dropdown-item-text fw-semibold">Token:</li>
-                                    <li>
-                                        <span class="dropdown-item-text text-break small">@token</span>
+                                <ul class="dropdown-menu dropdown-menu-end user-dropdown" aria-labelledby="userDropdown">
+                                    <li class="px-3 py-2">
+                                        <div class="fw-semibold mb-1">Usuário:</div>
+                                        <div class="text-break small">@username</div>
+                                    </li>
+                                    <li class="px-3 py-2">
+                                        <div class="fw-semibold mb-1">Token:</div>
+                                        <div class="text-break small">@token</div>
                                     </li>
                                     <li><hr class="dropdown-divider" /></li>
                                     <li>
-                                        <a class="dropdown-item text-danger" asp-page="/Logout">Sair</a>
+                                        <div class="text-center px-3 py-2">
+                                            <form method="post" asp-page="/Logout">
+                                                <button type="submit" class="btn btn-danger btn-sm w-100">Sair</button>
+                                            </form>
+                                        </div>
                                     </li>
                                 </ul>
                             </li>

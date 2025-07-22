@@ -1,4 +1,5 @@
 ﻿@page "{id?}"
+@using System.ComponentModel.DataAnnotations
 @model ProdutoModel
 @{
     ViewData["Title"] = "Produto";
@@ -19,14 +20,14 @@
         <div class="col-12">
 
             <!-- Aba: DECORACAO -->
-            <div class="info-tab">
-                <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
-                    <span class="fw-semibold text-uppercase">DECORAÇÃO</span>
+            <div class="info-tab" id="tab1">
+                <div class="info-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold text-uppercase" style="width: 100%;" onclick="toggleTab(this,'tab1')">DECORAÇÃO</span>
                     <div class="d-flex gap-1">
                         <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="event.stopPropagation(); enviarImagens('DECORACAO');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="event.stopPropagation(); triggerImageInput(event, 'DECORACAO')">
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="event.stopPropagation(); triggerImageInput('DECORACAO')">
                             <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
                         </button>
                         <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage('DECORACAO');">
@@ -65,9 +66,9 @@
             </div>
 
             <!-- Aba: EMBALAGEM -->
-            <div class="info-tab">
-                <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
-                    <span class="fw-semibold text-uppercase">EMBALAGEM</span>
+            <div class="info-tab" id="tab2">
+                <div class="info-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold text-uppercase" style="width: 100%;" onclick="toggleTab(this,'tab2')">EMBALAGEM</span>
                     <div class="d-flex gap-1">
                         <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="event.stopPropagation(); enviarImagens('EMBALAGEM');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
@@ -111,9 +112,9 @@
             </div>
 
             <!-- Aba: PALETIZACAO -->
-            <div class="info-tab">
-                <div class="info-header d-flex justify-content-between align-items-center" onclick="toggleTab(this)">
-                    <span class="fw-semibold text-uppercase">PALETIZAÇÃO</span>
+            <div class="info-tab" id="tab3">
+                <div class="info-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold text-uppercase" style="width: 100%;" onclick="toggleTab(this,'tab3')">PALETIZAÇÃO</span>
                     <div class="d-flex gap-1">
                         <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="event.stopPropagation(); enviarImagens('PALETIZACAO');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
@@ -157,57 +158,243 @@
             </div>
 
             <!-- Outras abas -->
-            <div class="info-tab">
-                <div class="info-header" onclick="toggleTab(this)">INFORMAÇÕES DO PRODUTO</div>
+            <div class="info-tab" id="tab4">
+                <div class="info-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold text-uppercase w-100" onclick="toggleTab(this, 'tab4')">
+                        INFORMAÇÕES DO PRODUTO
+                    </span>
+                    <div class="d-flex gap-1">
+                        <!-- Botões ou ícones opcionais aqui -->
+                    </div>
+                </div>
                 <div class="info-content px-2 py-2">
                     <div class="row border-bottom py-1">
-                        <div class="col-5 fw-semibold">Código do Produto</div>
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Produto.ProductId), TypeProduct)</div>
                         <div class="col-7">@Model.Produto?.ProductId</div>
                     </div>
                     <div class="row border-bottom py-1">
-                        <div class="col-5 fw-semibold">Nome</div>
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Produto.ProductName), TypeProduct)</div>
                         <div class="col-7">@Model.Produto?.ProductName</div>
                     </div>
                     <div class="row py-1">
-                        <div class="col-5 fw-semibold">Código de Barras</div>
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Produto.Barcode), TypeProduct)</div>
                         <div class="col-7">@Model.Produto?.Barcode</div>
                     </div>
                 </div>
             </div>
 
-            <div class="info-tab">
-                <div class="info-header" onclick="toggleTab(this)">DIMENSÕES</div>
+            <div class="info-tab" id="tab5">
+                <div class="info-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold text-uppercase w-100" onclick="toggleTab(this, 'tab5')">
+                        DIMENSÕES
+                    </span>
+                    <div class="d-flex gap-1">
+                        <!-- (Se quiser colocar botão de ação aqui) -->
+                    </div>
+                </div>
                 <div class="info-content px-2 py-2">
-                    <p>Em construção !!!</p>
+                    @if (Model.Invent != null)
+                    {
+                        <div class="row border-bottom py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Invent.NetWeight), TypeInvent)</div>
+                            <div class="col-7">@Model.Invent.NetWeight?.ToString()</div>
+                        </div>
+                        <div class="row border-bottom py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Invent.TaraWeight), TypeInvent)</div>
+                            <div class="col-7">@Model.Invent.TaraWeight?.ToString()</div>
+                        </div>
+                        <div class="row border-bottom py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Invent.GrossWeight), TypeInvent)</div>
+                            <div class="col-7">@Model.Invent.GrossWeight?.ToString()</div>
+                        </div>
+                        <div class="row border-bottom py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Invent.GrossDepth), TypeInvent)</div>
+                            <div class="col-7">@Model.Invent.GrossDepth?.ToString()</div>
+                        </div>
+                        <div class="row border-bottom py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Invent.GrossWidth), TypeInvent)</div>
+                            <div class="col-7">@Model.Invent.GrossWidth?.ToString()</div>
+                        </div>
+                        <div class="row border-bottom py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Invent.GrossHeight), TypeInvent)</div>
+                            <div class="col-7">@Model.Invent.GrossHeight?.ToString()</div>
+                        </div>
+                        <div class="row border-bottom py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Invent.UnitVolume), TypeInvent)</div>
+                            <div class="col-7">@Model.Invent.UnitVolume?.ToString()</div>
+                        </div>
+                        <div class="row border-bottom py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Invent.UnitVolumeML), TypeInvent)</div>
+                            <div class="col-7">@Model.Invent.UnitVolumeML?.ToString()</div>
+                        </div>
+                        <div class="row border-bottom py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Invent.NrOfItems), TypeInvent)</div>
+                            <div class="col-7">@Model.Invent.NrOfItems?.ToString()</div>
+                        </div>
+                        <div class="row py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(@Model.Invent.UnitId), TypeInvent)</div>
+                            <div class="col-7">@Model.Invent.UnitId</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Nenhuma informação disponível.</p>
+                    }
                 </div>
             </div>
 
-            <div class="info-tab">
-                <div class="info-header" onclick="toggleTab(this)">INFORMAÇÕES FISCAIS</div>
+            <div class="info-tab" id="tab6">
+                <div class="info-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold text-uppercase w-100" onclick="toggleTab(this, 'tab6')">
+                        INFORMAÇÕES FISCAIS
+                    </span>
+                    <div class="d-flex gap-1">
+                        <!-- Botões de ação, se houver -->
+                    </div>
+                </div>
                 <div class="info-content px-2 py-2">
-                    <p>Em construção !!!</p>
+                    @if (Model.TaxInformation != null)
+                    {
+                        <div class="row py-1 border-bottom">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.TaxInformation.TaxationOrigin), TypeTaxInfo)</div>
+                            <div class="col-7">@Model.TaxInformation.TaxationOrigin</div>
+                        </div>
+                        <div class="row py-1 border-bottom">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.TaxInformation.TaxFiscalClassification), TypeTaxInfo)</div>
+                            <div class="col-7">@Model.TaxInformation.TaxFiscalClassification</div>
+                        </div>
+                        <div class="row py-1 border-bottom">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.TaxInformation.ProductType), TypeTaxInfo)</div>
+                            <div class="col-7">@Model.TaxInformation.ProductType</div>
+                        </div>
+                        <div class="row py-1 border-bottom">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.TaxInformation.CestCode), TypeTaxInfo)</div>
+                            <div class="col-7">@Model.TaxInformation.CestCode</div>
+                        </div>
+                        <div class="row py-1 border-bottom">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.TaxInformation.FiscalGroupId), TypeTaxInfo)</div>
+                            <div class="col-7">@Model.TaxInformation.FiscalGroupId</div>
+                        </div>
+                        <div class="row py-1 border-bottom">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.TaxInformation.ApproxTaxValueFederal), TypeTaxInfo)</div>
+                            <div class="col-7">@Model.TaxInformation.ApproxTaxValueFederal?.ToString("N2")</div>
+                        </div>
+                        <div class="row py-1 border-bottom">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.TaxInformation.ApproxTaxValueState), TypeTaxInfo)</div>
+                            <div class="col-7">@Model.TaxInformation.ApproxTaxValueState?.ToString("N2")</div>
+                        </div>
+                        <div class="row py-1">
+                            <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.TaxInformation.ApproxTaxValueCity), TypeTaxInfo)</div>
+                            <div class="col-7">@Model.TaxInformation.ApproxTaxValueCity?.ToString("N2")</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Nenhuma informação disponível.</p>
+                    }
+                </div>
+            </div>
+            <div class="info-tab" id="tab7">
+                <div class="info-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold text-uppercase w-100" onclick="toggleTab(this, 'tab7')">
+                        OXFORD
+                    </span>
+                    <div class="d-flex gap-1">
+                        <!-- Botões de ação, se desejar -->
+                    </div>
+                </div>
+                <div class="info-content px-2 py-2">
+                    <div class="row py-1 border-bottom">
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.Oxford.FamilyDescription), TypeOxford)</div>
+                        <div class="col-7">@($"{Model.Oxford.FamilyId} - {Model.Oxford.FamilyDescription}")</div>
+                    </div>
+                    <div class="row py-1 border-bottom">
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.Oxford.BrandDescription), TypeOxford)</div>
+                        <div class="col-7">@($"{Model.Oxford.BrandId} - {Model.Oxford.BrandDescription}")</div>
+                    </div>
+                    <div class="row py-1 border-bottom">
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.Oxford.DecorationDescription), TypeOxford)</div>
+                        <div class="col-7">@($"{Model.Oxford.DecorationId} - {Model.Oxford.DecorationDescription}")</div>
+                    </div>
+                    <div class="row py-1 border-bottom">
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.Oxford.TypeDescription), TypeOxford)</div>
+                        <div class="col-7">@($"{Model.Oxford.TypeId} - {Model.Oxford.TypeDescription}")</div>
+                    </div>
+                    <div class="row py-1 border-bottom">
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.Oxford.ProcessDescription), TypeOxford)</div>
+                        <div class="col-7">@($"{Model.Oxford.ProcessId} - {Model.Oxford.ProcessDescription}")</div>
+                    </div>
+                    <div class="row py-1 border-bottom">
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.Oxford.SituationDescription), TypeOxford)</div>
+                        <div class="col-7">@($"{Model.Oxford.SituationId} - {Model.Oxford.SituationDescription}")</div>
+                    </div>
+                    <div class="row py-1 border-bottom">
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.Oxford.LineDescription), TypeOxford)</div>
+                        <div class="col-7">@($"{Model.Oxford.LineId} - {Model.Oxford.LineDescription}")</div>
+                    </div>
+                    <div class="row py-1 border-bottom">
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.Oxford.QualityDescription), TypeOxford)</div>
+                        <div class="col-7">@($"{Model.Oxford.QualityId} - {Model.Oxford.QualityDescription}")</div>
+                    </div>
+                    <div class="row py-1 border-bottom">
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.Oxford.BaseProductDescription), TypeOxford)</div>
+                        <div class="col-7">@($"{Model.Oxford.BaseProductId} - {Model.Oxford.BaseProductDescription}")</div>
+                    </div>
+                    <div class="row py-1">
+                        <div class="col-5 fw-semibold">@GetDisplayName(nameof(Model.Oxford.ProductGroupDescription), TypeOxford)</div>
+                        <div class="col-7">@($"{Model.Oxford.ProductGroupId} - {Model.Oxford.ProductGroupDescription}")</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="info-tab">
-                <div class="info-header" onclick="toggleTab(this)">OXFORD</div>
-                <div class="info-content px-2 py-2">
-                    <p>Em construção !!!</p>
+            <div class="info-tab" id="tab8">
+                <div class="info-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold text-uppercase w-100" onclick="toggleTab(this, 'tab8')">
+                        BOM
+                    </span>
+                    <div class="d-flex gap-1">
+                        <!-- Botões futuros, se necessário -->
+                    </div>
                 </div>
-            </div>
-
-            <div class="info-tab">
-                <div class="info-header" onclick="toggleTab(this)">BOM</div>
                 <div class="info-content px-2 py-2">
-                    <p>Em construção !!!</p>
+                    <p class="text-muted">Em construção !!!</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+@functions {
+    private static readonly Type TypeProduct    = typeof(OXF.Models.Product);
+    private static readonly Type TypeInvent     = typeof(OXF.Models.Invent);
+    private static readonly Type TypeTaxInfo    = typeof(OXF.Models.TaxInformation);
+    private static readonly Type TypeOxford     = typeof(OXF.Models.Oxford);
 
+    string GetDisplayName(string propertyName, Type modelType)
+    {
+        var prop = modelType.GetProperty(propertyName);
+        if (prop == null)
+            return propertyName;
+
+        var displayAttr = prop.GetCustomAttributes(typeof(DisplayAttribute), false)
+                              .FirstOrDefault() as DisplayAttribute;
+
+        return displayAttr?.Name ?? propertyName;
+    }
+
+    string GetDisplayNameProduct(string propertyName)
+    {
+        var prop = typeof(OXF.Models.Product).GetProperty(propertyName);
+        if (prop == null)
+            return propertyName;
+
+        var displayAttr = prop.GetCustomAttributes(typeof(DisplayAttribute), false)
+                              .FirstOrDefault() as DisplayAttribute;
+
+        return displayAttr?.Name ?? propertyName;
+    }
+}
 @section Styles {
-    <link rel="stylesheet" href="~/css/produto.css" />
+    <link rel="stylesheet" href="~/css/produto.css?v=1.3" />
 }
 
 @section Scripts {
@@ -215,7 +402,7 @@
     @{
         var token = antiforgery.GetAndStoreTokens(HttpContext);
     }
-    <script src="~/js/produto.js?v=1.0"></script>
+    <script src="~/js/produto.js?v=1.9"></script>
 
     <script>
         window.produtoId = '@Model.Produto?.ProductId';
