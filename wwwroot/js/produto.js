@@ -1,6 +1,6 @@
 ﻿// ======================= VARIÁVEIS GLOBAIS =======================
 window.imagens = {
-    DECORACAO: [],
+    PRODUTO: [],
     EMBALAGEM: [],
     PALETIZACAO: []
 };
@@ -87,6 +87,9 @@ function handleImageSelected(event, finalidade) {
         window["currentImageIndex_" + finalidade] = window.imagens[finalidade].length - 1;
         setMainImage(dataUrl, finalidade);
         atualizarThumbnails(finalidade);
+
+        // *** Envia para a API ***
+        enviarImagens(finalidade);
     };
     reader.readAsDataURL(file);
 }
@@ -220,14 +223,14 @@ function enviarImagens(finalidade) {
             ia[i] = byteString.charCodeAt(i);
         }
 
-    const blob = new Blob([ab], { type: mimeString });
+        const blob = new Blob([ab], { type: mimeString });
     
-    // Gera nome: 0001.jpg, 0002.png, 0003.png etc.
-    const numero = String(index + 1).padStart(4, '0');
-    const extensao = mimeString.split('/')[1] || 'jpg';
-    const nomeArquivo = `${numero}.${extensao}`;
+        // Gera nome: 0001.jpg, 0002.png, 0003.png etc.
+        const numero = String(index + 1).padStart(4, '0');
+        const extensao = mimeString.split('/')[1] || 'jpg';
+        const nomeArquivo = `${numero}.${extensao}`;
 
-    formData.append('files', blob, nomeArquivo);
+        formData.append('files', blob, nomeArquivo);
     });
     const produtoId = window.produtoId;
 

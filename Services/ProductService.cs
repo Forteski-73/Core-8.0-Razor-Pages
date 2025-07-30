@@ -105,5 +105,45 @@ namespace OXF.Services
             var errorText = await response.Content.ReadAsStringAsync();
             return (false, Messages.ErrorProcess($"{response.StatusCode} - {errorText}"));
         }
+        public async Task<(bool Success, string? ErrorMessage)> SyncProductAsync(IEnumerable<object> produtos, string jwtToken)
+        {
+            var url = $"{_settings.BaseUrl}{ApiEndpoints.Product.Sync}";
+            var json = JsonSerializer.Serialize(produtos);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = content
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+            var response = await _httpClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+                return (true, null);
+            var errorText = await response.Content.ReadAsStringAsync();
+            return (false, Messages.ErrorProcess($"{response.StatusCode} - {errorText}"));
+        }
+
+        public async Task<(bool Success, string? ErrorMessage)> ImportInventDimAsync(IEnumerable<object> inventDims, string jwtToken)
+        {
+            // O endpoint para InventDim. Certifique-se de que ApiEndpoints.Product.InventDim esteja definido.
+            var url = $"{_settings.BaseUrl}{ApiEndpoints.Product.InventDim}";
+
+            var json = JsonSerializer.Serialize(inventDims);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = content
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+                return (true, null);
+
+            var errorText = await response.Content.ReadAsStringAsync();
+            return (false, Messages.ErrorProcess($"{response.StatusCode} - {errorText}"));
+        }
+
     }
 }

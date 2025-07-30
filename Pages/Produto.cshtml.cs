@@ -30,7 +30,7 @@ public class ProdutoModel : PageModel
     }
 
     public ProdutoResponse Produto { get; set; }
-    public List<string> ImgDecoration { get; set; } = new();
+    public List<string> ImgProduto { get; set; } = new();
 
     public List<string> ImgPackage { get; set; } = new();
 
@@ -67,7 +67,6 @@ public class ProdutoModel : PageModel
             var token = User.Claims.FirstOrDefault(c => c.Type == "JwtToken")?.Value;
             if (string.IsNullOrWhiteSpace(token))
                 return Unauthorized();
-
 
             var client = CreateHttpClientWithToken(token);
 
@@ -131,7 +130,7 @@ public class ProdutoModel : PageModel
 
 
             // Carregar as três finalidades
-            ImgDecoration   = await LoadImagesFromZipAsync(client, produtoId, Finalidade.DECORACAO);
+            ImgProduto      = await LoadImagesFromZipAsync(client, produtoId, Finalidade.PRODUTO);
             ImgPackage      = await LoadImagesFromZipAsync(client, produtoId, Finalidade.EMBALAGEM);
             ImgPallet       = await LoadImagesFromZipAsync(client, produtoId, Finalidade.PALETIZACAO);
 
@@ -207,7 +206,7 @@ public class ProdutoModel : PageModel
     private async Task<List<string>> LoadImagesFromZipAsync(HttpClient client, string produtoId, Finalidade finalidade)
     {
         var images = new List<string>();
-        var zipUrl = $"{_baseUrl}/v1/Image/ProductImage/{produtoId}/{finalidade}";
+        var zipUrl = $"{_baseUrl}/v1/Image/ProductImage/{produtoId}/{finalidade}/false";
         var zipResponse = await client.GetAsync(zipUrl);
 
         if (zipResponse.IsSuccessStatusCode)

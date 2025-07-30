@@ -4,7 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - OXF</title>
-
+    <!-- Favicon padrão -->
+    <link rel="icon" type="image/x-icon" href="~/img/oxf-favicon.png" />
     <!-- Bootstrap CSS (via LibMan) -->
     <link rel="stylesheet" href="@Url.Content("/lib/bootstrap/dist/css/bootstrap.min.css")" />
 
@@ -99,7 +100,7 @@
                             <a class="nav-link" asp-page="/Importar">IMPORTAR</a>
                         </li>
                         <li class="nav-item me-3">
-                            <a class="nav-link" asp-page="/Produto">CONSULTAR</a>
+                            <a class="nav-link" asp-page="/Sincronizar">SINCRONIZAR</a>
                         </li>
                     </ul>
 
@@ -151,8 +152,8 @@
 
     <footer class="bg-light text-center py-3 mt-auto border-top">
         <div class="container">
-            <a asp-page="/Privacy" style="text-decoration: none; font-size: 10px;">Privacidade</a> |
-            © 2025 Oxford Porcelanas. Todos os direitos reservados.
+            <a asp-page="/Privacy" style="text-decoration: none; font-size: 14px;">Privacidade</a> |
+            © 2025 Oxford Porcelanas.
         </div>
     </footer>
 

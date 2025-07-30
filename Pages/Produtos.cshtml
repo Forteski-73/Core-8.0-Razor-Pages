@@ -4,114 +4,452 @@
     ViewData["Title"] = "Lista de Produtos";
 }
 
-<style>
+    <!-- Título + Botão de filtro lado a lado -->
+    <div class="d-flex justify-content-between align-items-center mb-3" style="margin-right: 12px;">
+        <!-- Lado esquerdo: Título + Filtro -->
+        <div class="d-flex align-items-center gap-2" >
+            <h1 class="mb-0">@ViewData["Title"]</h1>
+
+            <div class="dropdown">
+                <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-funnel-fill fs-2"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item filter-option" href="#" data-field="Produto">Produto                    </a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-field="Código de Barras">Código de Barras  </a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-field="Família">Família                    </a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-field="Marca">Marca                        </a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-field="Linha">Linha                        </a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-field="Decoração">Decoração                </a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-field="Nome">Nome                          </a></li>
+                </ul>
+            </div>
+
+        </div>
 
 
-    /* Permite quebra de linha no conteúdo */
-    #productTable th, #productTable td {
-        white-space: normal !important;
-    }
-
-    /* Hover e link */
-    #productTable tbody tr:hover {
-        background-color: #e9f5ff;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    #productTable a.text-decoration-none {
-        color: #0d6efd;
-        text-decoration: none;
-    }
-
-        #productTable a.text-decoration-none:hover {
-            text-decoration: underline;
-            color: #0a58ca;
-        }
-</style>
-
-<h1 class="mb-4">@ViewData["Title"]</h1>
-
-@if (Model.Product?.Any() == true)
-{
-    <div class="table-responsive">
-        <table id="productTable" class="table table-striped table-hover align-middle nowrap" style="width:100%">
-            <thead class="table-primary">
-                <tr>
-                    <th>Código</th>
-                    <th>Nome</th>
-                    <th>Código de Barras</th>
-                </tr>
-                <tr class="filters">
-                    <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Código" /></th>
-                    <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Nome" /></th>
-                    <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Código de Barras" /></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var product in Model.Product)
-                {
-                    <tr>
-                        <td>
-                            <a asp-page="/Produto" asp-route-id="@product.ProductId" class="text-decoration-none">
-                                @product.ProductId
-                            </a>
-                        </td>
-                        <td>@product.ProductName</td>
-                        <td>@product.Barcode</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        <!-- Botão alternar visualização -->
+        <button id="toggleViewBtn"
+                class="btn btn-outline-primary btn-lg w-md-auto align-self-stretch align-self-md-start">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+        </button>
     </div>
-}
-else
-{
-    <div class="alert alert-warning">Carregando ou nenhum produto encontrado.</div>
+
+    <div class="container">
+        <!-- Label do filtro vigente -->
+        <div id="activeFilters" class="d-flex flex-nowrap overflow-auto gap-2 mt-1 pb-1 small text-muted">
+            <!-- Filtros serão inseridos aqui via JS -->
+        </div>
+        <!-- Campo de pesquisa com "+" incorporado -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch mb-3 gap-2">
+            <!-- Campo de pesquisa + label -->
+            <div class="flex-grow-1 w-100">
+                <div class="d-flex flex-column flex-md-row align-items-stretch gap-2">
+                    <!-- Campo de pesquisa com botão "+" dentro -->
+                    <div class="position-relative w-100">
+                        <input type="text" id="searchInput" class="form-control form-control-lg pe-5" placeholder="🔍 Pesquisar.." disabled/>
+                        <button type="button"
+                                class="btn btn-success position-absolute top-50 end-0 translate-middle-y me-2 p-0 d-flex align-items-center justify-content-center"
+                                style="width: 32px; height: 32px; border-radius: 50%;">
+                            <i class="bi bi-plus fs-3"></i>
+                        </button>
+                    </div>
+
+                    <!-- Botão pesquisar -->
+                    <button id="btnBuscar" class="btn btn-primary btn-lg align-self-stretch">
+                        <i class="bi bi-search fs-4 me-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Lista de Produtos -->
+    <div id="productList" class="row g-3 list-view">
+        @await Html.PartialAsync("_ProductListPartial", Model.Product)
+    </div>
+
+    <!-- Loader do Scroll Infinito -->
+    <div id="loading" class="text-center my-3" style="display:none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Carregando...</span>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <style>
+
+        .dropdown, .dropdown-center, .dropend, .dropstart, .dropup, .dropup-center {
+            position: relative;
+            margin: 0px 10px 0px 10px;
+        }
+
+        .me-1 {
+            margin-right: 0px !important;
+        }
+
+        .btn-group-lg > .btn, .btn-lg {
+            --bs-btn-padding-y: 0.3rem;
+            --bs-btn-padding-x: 0.7rem;
+        }
+
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .grid-view .product-item {
+            width: calc(50% - 0.5rem);
+        }
+
+        @@media (min-width: 768px) {
+            .grid-view .product-item {
+                width: calc(33.333% - 0.5rem);
+            }
+        }
+
+        .grid-view .card-body {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .grid-view img {
+            width: 120px !important;
+            height: 120px !important;
+            margin-bottom: 0.5rem;
+        }
+
+        .rounded-pill {
+            border-radius: 5px !important;
+        }
+
+        .text-end {
+            text-align: right !important;
+            width: 100% !important;
+            max-width: 120px !important;
+        }
+
+        .rounded-pill {
+            border-radius: 5px !important;
+            background-color: #555;
+            border-color: #555;
+            width: 100%;
+        }
+
+        .rounded-pill:hover {
+            background-color: #333;
+            border-color: #333;
+        }
+
+        .rounded-pill:focus,
+        .rounded-pill:active {
+            background-color: #333 !important;
+            border-color: #333 !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        .dropdown-menu {
+            min-width: 180px;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-option:hover {
+            background-color: #f8f9fa;
+            font-weight: 500;
+        }
+
+        .btn-outline-dark {
+            border-color: #333;
+            color: #333;
+        }
+
+        .btn-outline-dark:hover {
+            background-color: #333;
+            color: #fff;
+        }
+
+        @@media (max-width: 768px) {
+            #selectedFilterLabel
+
+            {
+                margin-left: 0.2rem;
+                margin-top: -0.2rem;
+            }
+
+        }
+
+        .dropdown-menu {
+            min-width: 160px;
+            border-radius: 0.5rem;
+        }
+
+        @@media (min-width: 768px) {
+            .align-self-md-start
+            {
+                align-self: flex-start !important;
+                width: auto !important;
+            }
+
+        }
+
+        #toggleViewBtn {
+            height: calc(1.5em + 1rem + 2px); /* mesma altura que form-control-lg */
+            /*padding: 0.375rem 0.75rem;  mesma padronização do btn-lg */
+            padding: 0rem 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        #searchInput {
+            height: calc(1.5em + 1rem + 2px); /* reforça a altura */
+        }
+
+    </style>
 }
 
 @section Scripts {
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
-
-    <!-- JS -->
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
-
     <script>
-        $(document).ready(function () {
-            const table = $('#productTable').DataTable({
-                responsive: true,
-                paging: true,
-                pageLength: 10,
-                lengthChange: true,
-                searching: true,
-                ordering: true,
-                orderCellsTop: true,
-                fixedHeader: true,
-                language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
-                }
-            });
+        // ======= Filtro dinâmico por campo =======
+        /*let currentField = "name"; // padrão
 
-            // Filtros por coluna
-            $('#productTable thead tr.filters th').each(function (i) {
-                $('input', this).on('keyup change clear', function () {
-                    if (table.column(i).search() !== this.value) {
-                        table.column(i).search(this.value).draw();
-                    }
-                });
-            });
+        document.querySelectorAll(".filter-option").forEach(option => {
+            option.addEventListener("click", function (e) {
+                e.preventDefault();
+                currentField = this.dataset.field;
 
-            // Estilo do campo de busca principal (se estivesse ativado)
-            $('.dataTables_filter input')
-                .addClass('form-control form-control-lg')
-                .attr('placeholder', 'Buscar registros...')
-                .css({ width: '100%', maxWidth: '300px' });
+                const label = document.getElementById("selectedFilterLabel");
+                label.innerHTML = `<i class="bi bi-filter-circle me-1"></i> Filtrando por: <strong>${this.innerText}</strong>`;
+
+                document.getElementById("searchInput").focus();
+            });
         });
+
+        document.getElementById("searchInput").addEventListener("keyup", function () {
+            const value = this.value.toLowerCase();
+
+            document.querySelectorAll(".product-item").forEach(item => {
+                const name = item.getAttribute("data-name").toLowerCase();
+                const id = item.getAttribute("data-id").toLowerCase();
+                const barcode = (item.getAttribute("data-barcode") || "").toLowerCase();
+
+                let match = false;
+                if (currentField === "name") match = name.includes(value);
+                else if (currentField === "id") match = id.includes(value);
+                else if (currentField === "barcode") match = barcode.includes(value);
+
+                item.style.display = match ? "block" : "none";
+            });
+        });*/
+
+        // ======= Alternância Lista <-> Grade =======
+        const productList = document.getElementById("productList");
+        const toggleBtn = document.getElementById("toggleViewBtn");
+        let isGrid = false;
+
+        toggleBtn.addEventListener("click", () => {
+            isGrid = !isGrid;
+            productList.classList.toggle("grid-view", isGrid);
+            productList.classList.toggle("list-view", !isGrid);
+
+            toggleBtn.innerHTML = isGrid
+                ? '<i class="bi bi-list-ul"></i>'
+                : '<i class="bi bi-grid-3x3-gap-fill"></i>';
+        });
+
+        // ======= Scroll Infinito =======
+        let itemsLoaded = 20;
+        const totalItems = @Model.Product.Count();
+        const allProducts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Product));
+
+        window.addEventListener("scroll", async function () {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+                if (itemsLoaded >= totalItems) return;
+
+                document.getElementById("loading").style.display = "block";
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const productsToLoad = allProducts.slice(itemsLoaded, itemsLoaded + 10);
+                productsToLoad.forEach(product => {
+                    const div = document.createElement("div");
+                    div.className = "col-12 product-item";
+                    div.setAttribute("data-name", product.ProductName);
+                    div.setAttribute("data-id", product.ProductId);
+                    div.setAttribute("data-barcode", product.Barcode || "");
+
+                    div.innerHTML = `
+                        <div class="card shadow-sm border-0 rounded-3">
+                            <div class="card-body d-flex align-items-center">
+                                <img src="${product.ImageUrl || '/images/no-image.png'}"
+                                     class="img-fluid rounded me-3"
+                                     style="width: 70px; height: 70px; object-fit: cover;" />
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1 text-uppercase">${product.ProductName}</h6>
+                                    <p class="text-muted mb-0">
+                                        <strong>Cód:</strong> ${product.ProductId} <br/>
+                                        <strong>Barras:</strong> ${product.Barcode ?? ''}
+                                    </p>
+                                </div>
+                                <div class="text-end">
+                                    <a href="/Produto?id=${product.ProductId}"
+                                       class="btn btn-primary btn-sm rounded-pill px-3">
+                                        <i class="bi bi-plus-lg"></i> Adicionar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>`;
+                    productList.appendChild(div);
+                });
+
+                itemsLoaded += productsToLoad.length;
+                document.getElementById("loading").style.display = "none";
+            }
+        });
+
+        /* Tratamento para os filtros */
+        let activeFilters = {}; // <- Aqui os filtros ficam salvos
+
+    function renderActiveFilters() {
+        const container = document.getElementById("activeFilters");
+        container.innerHTML = "";
+
+        const fieldLabels = {
+            id: "Código",
+            name: "Nome",
+            barcode: "Código de Barras",
+            family: "Família",
+            brand: "Marca",
+            line: "Linha",
+            decor: "Decoração"
+        };
+
+        for (const [field, value] of Object.entries(activeFilters)) {
+            const label = fieldLabels[field] || field; // Usa o rótulo definido, ou o próprio nome do campo
+
+            const badge = document.createElement("span");
+            badge.className = "badge bg-light border text-dark d-flex align-items-center px-2 py-1 fs-6";
+            badge.style.cursor = "pointer";
+            badge.innerHTML = `${label}: ${value} <span class="ms-1 text-danger fw-bold fs-6" title="Remover">&times;</span>`;
+
+            badge.onclick = () => {
+                delete activeFilters[field];
+                renderActiveFilters();
+                applyFilters();
+            };
+
+            container.appendChild(badge);
+        }
+    }
+
+        function applyFilters() {
+            const items = document.querySelectorAll(".product-item");
+
+            items.forEach(item => {
+                let show = true;
+
+                for (const [field, value] of Object.entries(activeFilters)) {
+                    const itemValue = (item.getAttribute("data-" + field) || "").toLowerCase();
+                    if (!itemValue.includes(value.toLowerCase())) {
+                        show = false;
+                        break;
+                    }
+                }
+
+                item.style.display = show ? "block" : "none";
+            });
+        }
+
+        // Botão "+" para adicionar filtro atual
+        document.querySelector(".btn-success").addEventListener("click", () => {
+            const input = document.getElementById("searchInput");
+            const value = input.value.trim();
+
+            if (value) {
+                activeFilters[currentField] = value;
+                renderActiveFilters();
+                applyFilters();
+                input.value = "";
+            }
+        });
+
+        // Atualiza campo selecionado (pelo ícone de funil)
+        let currentField = ""; // padrão
+
+        function updateSearchInputState() {
+          const input = document.getElementById("searchInput");
+          input.disabled = (currentField === "");
+        }
+
+        document.querySelectorAll(".filter-option").forEach(option => {
+          option.addEventListener("click", function (e) {
+            e.preventDefault();
+            currentField = this.dataset.field || "";
+
+            // Atualiza o placeholder com o texto do filtro escolhido
+            const placeholderBase = "🔍 ";
+            document.getElementById("searchInput").placeholder = currentField
+              ? `${placeholderBase}${this.innerText}..`
+              : "🔍 Pesquisar..";
+
+            updateSearchInputState();
+            document.getElementById("searchInput").focus();
+          });
+        });
+
+        // Desabilita inicialmente se currentField estiver vazio
+        updateSearchInputState();
+
+        /* ==================== PESQUISA =================== */
+
+        document.getElementById("btnBuscar").addEventListener("click", async () => {
+            // Constrói a query string com os filtros ativos
+            const params = new URLSearchParams();
+
+            for (const [key, value] of Object.entries(activeFilters)) {
+                params.append(key, value);
+                   // alert(`Filtro: ${key} = ${value}`);
+            }
+
+            const url = `/Produtos?handler=Search&${params.toString()}`;
+
+            try {
+                const response = await fetch(url);
+                const html = await response.text();
+
+                // Atualiza a lista com os produtos filtrados
+                document.getElementById("productList").innerHTML = html;
+            } catch (err) {
+                console.error("Erro ao buscar produtos:", err);
+            }
+        });
+
+        /*
+        document.getElementById("btnBuscar").addEventListener("click", async () => {
+            const searchTerm = document.getElementById("hiddenSearchTerm").value;
+            const searchField = document.getElementById("hiddenSearchField").value;
+
+            const url = `/Produtos?handler=Search&searchTerm=${encodeURIComponent(searchTerm)}&searchField=${encodeURIComponent(searchField)}`;
+
+            try {
+                const response = await fetch(url);
+                const html = await response.text(); // se a Razor Page retornar HTML parcial
+
+                // Insere o conteúdo retornado no local desejado da página
+                document.getElementById("productList").innerHTML = html;
+            } catch (err) {
+                console.error("Erro ao buscar produtos:", err);
+            }
+        });*/
+
     </script>
 }

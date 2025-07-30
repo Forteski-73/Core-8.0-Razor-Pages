@@ -12,9 +12,12 @@
         public static class Product
         {
             public const string Products        = "/v1/Product";
+            public const string Search          = "/v1/Product/Search";
             public const string Invent          = "/v1/Invent";
+            public const string InventDim       = "/v1/Inventdim";
             public const string Oxford          = "/v1/Oxford";
             public const string TaxInformation  = "/v1/TaxInformation";
+            public const string Sync            = "/v1/Product/Sync";
         }
 
     }

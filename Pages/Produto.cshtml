@@ -19,49 +19,64 @@
     <div class="row">
         <div class="col-12">
 
-            <!-- Aba: DECORACAO -->
+            <!-- Aba: PRODUTO -->
             <div class="info-tab" id="tab1">
                 <div class="info-header d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold text-uppercase" style="width: 100%;" onclick="toggleTab(this,'tab1')">DECORAÇÃO</span>
+                    <span class="fw-semibold text-uppercase" style="width: 100%;" onclick="toggleTab(this,'tab1')">PRODUTO</span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="event.stopPropagation(); enviarImagens('DECORACAO');">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="enviarImagens('PRODUTO');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="event.stopPropagation(); triggerImageInput('DECORACAO')">
-                            <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput('PRODUTO')">
+                            <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img"/>
                         </button>
-                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage('DECORACAO');">
+                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="removeCurrentImage('PRODUTO');">
                             <img src="~/images/icons/rem-image.png" alt="Remover" class="icon-img" />
                         </button>
-                        <input type="file" id="imageInputCamera_DECORACAO" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'DECORACAO')">
-                        <input type="file" id="imageInputGallery_DECORACAO" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'DECORACAO')">
+                        <input type="file" id="imageInputCamera_PRODUTO" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'PRODUTO')">
+                        <input type="file" id="imageInputGallery_PRODUTO" accept="image/*" style="display:none" onchange="handleImageSelected(event, 'PRODUTO')">
                     </div>
                 </div>
 
                 <div class="info-content px-2 py-2">
-                    @if (Model.ImgDecoration?.Any() == true)
-                    {
-                        <div class="text-center">
-                            <div class="zoom-container mx-auto mb-3" data-finalidade="DECORACAO">
-                                <img id="mainImage_DECORACAO" src="@Model.ImgDecoration.First()" class="zoom-img" />
-                            </div>
-                            <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
-                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1, 'DECORACAO')">&#10094;</button>
-                                <div id="thumbContainer_DECORACAO" class="thumb-container-horizontal">
-                                    @for (int i = 0; i < Model.ImgDecoration.Count; i++)
+                    <div class="text-center">
+                        <!-- Imagem principal -->
+                        <div class="zoom-container mx-auto mb-3" data-finalidade="PRODUTO">
+                            <img id="mainImage_PRODUTO" src="@(Model.ImgProduto?.FirstOrDefault() ?? Url.Content("~/img/not-found.jpg"))" class="zoom-img" />
+                        </div>
+
+                        <!-- Carrossel de thumbnails com drag-and-drop -->
+                        <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
+
+                            @if (Model.ImgProduto?.Any() == true)
+                            {
+                                <!-- Botão anterior (oculto em mobile) -->
+                                <button class="carousel-btn prev d-none d-md-inline" onclick="scrollThumbnail(-1, 'PRODUTO')">&#10094;</button>
+
+                                <!-- Container de miniaturas -->
+                                <div id="thumbContainer_PRODUTO" class="thumb-container-horizontal d-flex gap-2">
+                                    @for (int i = 0; i < Model.ImgProduto.Count; i++)
                                     {
-                                        var img = Model.ImgDecoration[i];
-                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','DECORACAO')" />
+                                        var img = Model.ImgProduto[i];
+                                        <div class="thumb-wrapper" data-index="@i" onclick="setMainImage('@img','PRODUTO')">
+                                            <img src="@img"
+                                                 class="img-thumbnail thumbnail-img"
+                                                 style="cursor: move;"
+                                                 />
+                                        </div>
                                     }
                                 </div>
-                                <button class="carousel-btn next" onclick="scrollThumbnail(1, 'DECORACAO')">&#10095;</button>
-                            </div>
+
+                                <!-- Botão próximo (oculto em mobile) -->
+                                <button class="carousel-btn next d-none d-md-inline" onclick="scrollThumbnail(1, 'PRODUTO')">&#10095;</button>
+                            }
+                            else
+                            {
+                                <div id="thumbContainer_PRODUTO" class="thumb-container-horizontal d-flex gap-2">
+                                </div>
+                            }
                         </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted">Nenhuma imagem disponível.</p>
-                    }
+                    </div>
                 </div>
             </div>
 
@@ -70,13 +85,13 @@
                 <div class="info-header d-flex justify-content-between align-items-center">
                     <span class="fw-semibold text-uppercase" style="width: 100%;" onclick="toggleTab(this,'tab2')">EMBALAGEM</span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="event.stopPropagation(); enviarImagens('EMBALAGEM');">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="enviarImagens('EMBALAGEM');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="event.stopPropagation(); triggerImageInput(event, 'EMBALAGEM')">
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput('EMBALAGEM')">
                             <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage('EMBALAGEM');">
+                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="removeCurrentImage('EMBALAGEM');">
                             <img src="~/images/icons/rem-image.png" alt="Remover" class="icon-img" />
                         </button>
                         <input type="file" id="imageInputCamera_EMBALAGEM" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'EMBALAGEM')">
@@ -85,29 +100,39 @@
                 </div>
 
                 <div class="info-content px-2 py-2">
-                    @if (Model.ImgPackage?.Any() == true)
-                    {
-                        <div class="text-center">
-                            <div class="zoom-container mx-auto mb-3" data-finalidade="EMBALAGEM">
-                                <img id="mainImage_EMBALAGEM" src="@Model.ImgPackage.First()" class="zoom-img" />
-                            </div>
-                            <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
-                                <button class="carousel-btn prev" onclick="scrollThumbnail(-1, 'EMBALAGEM')">&#10094;</button>
-                                <div id="thumbContainer_EMBALAGEM" class="thumb-container-horizontal">
+                    <div class="text-center">
+                        <div class="zoom-container mx-auto mb-3" data-finalidade="EMBALAGEM">
+                            <img id="mainImage_EMBALAGEM" src="@(Model.ImgPackage?.FirstOrDefault() ?? Url.Content("~/img/not-found.jpg"))" class="zoom-img" />
+                        </div>
+                        <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
+                            @if (Model.ImgPackage?.Any() == true)
+                            {
+                                <!-- Botão anterior (oculto em mobile) -->
+                                <button class="carousel-btn prev d-none d-md-inline" onclick="scrollThumbnail(-1, 'EMBALAGEM')">&#10094;</button>
+
+                                <!-- Container de miniaturas -->
+                                <div id="thumbContainer_EMBALAGEM" class="thumb-container-horizontal d-flex gap-2">
                                     @for (int i = 0; i < Model.ImgPackage.Count; i++)
                                     {
                                         var img = Model.ImgPackage[i];
-                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','EMBALAGEM')" />
+                                        <div class="thumb-wrapper" data-index="@i" onclick="setMainImage('@img','EMBALAGEM')">
+                                            <img src="@img"
+                                                 class="img-thumbnail thumbnail-img"
+                                                 style="cursor: move;" />
+                                        </div>
                                     }
                                 </div>
-                                <button class="carousel-btn next" onclick="scrollThumbnail(1, 'EMBALAGEM')">&#10095;</button>
-                            </div>
+
+                                <!-- Botão próximo (oculto em mobile) -->
+                                <button class="carousel-btn next d-none d-md-inline" onclick="scrollThumbnail(1, 'EMBALAGEM')">&#10095;</button>
+                            }
+                            else
+                            {
+                                <div id="thumbContainer_EMBALAGEM" class="thumb-container-horizontal d-flex gap-2">
+                                </div>
+                            }
                         </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted">Nenhuma imagem disponível.</p>
-                    }
+                    </div>
                 </div>
             </div>
 
@@ -116,13 +141,13 @@
                 <div class="info-header d-flex justify-content-between align-items-center">
                     <span class="fw-semibold text-uppercase" style="width: 100%;" onclick="toggleTab(this,'tab3')">PALETIZAÇÃO</span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="event.stopPropagation(); enviarImagens('PALETIZACAO');">
+                        <button type="button" class="icon-btn text-primary" title="Salvar imagens" onclick="enviarImagens('PALETIZACAO');">
                             <img src="~/images/icons/sav-image.png" alt="Salvar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="event.stopPropagation(); triggerImageInput(event, 'PALETIZACAO')">
+                        <button type="button" class="icon-btn text-success" title="Adicionar" onclick="triggerImageInput('PALETIZACAO')">
                             <img src="~/images/icons/add-image.png" alt="Adicionar" class="icon-img" />
                         </button>
-                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="event.stopPropagation(); removeCurrentImage('PALETIZACAO');">
+                        <button type="button" class="icon-btn text-danger" title="Remover" onclick="removeCurrentImage('PALETIZACAO');">
                             <img src="~/images/icons/rem-image.png" alt="Remover" class="icon-img" />
                         </button>
                         <input type="file" id="imageInputCamera_PALETIZACAO" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelected(event, 'PALETIZACAO')">
@@ -136,22 +161,32 @@
                             <img id="mainImage_PALETIZACAO" src="@(Model.ImgPallet?.FirstOrDefault() ?? Url.Content("~/img/not-found.jpg"))" class="zoom-img" />
                         </div>
                         <div class="thumbnail-row d-flex align-items-center justify-content-center position-relative">
-                            <button class="carousel-btn prev" onclick="scrollThumbnail(-1, 'PALETIZACAO')">&#10094;</button>
-                            <div id="thumbContainer_PALETIZACAO" class="thumb-container-horizontal">
-                                @if (Model.ImgPallet?.Any() == true)
-                                {
+                            @if (Model.ImgPallet?.Any() == true)
+                            {
+                                <!-- Botão anterior (oculto em mobile) -->
+                                <button class="carousel-btn prev d-none d-md-inline" onclick="scrollThumbnail(-1, 'PALETIZACAO')">&#10094;</button>
+
+                                <!-- Container de miniaturas -->
+                                <div id="thumbContainer_PALETIZACAO" class="thumb-container-horizontal d-flex gap-2">
                                     @for (int i = 0; i < Model.ImgPallet.Count; i++)
                                     {
                                         var img = Model.ImgPallet[i];
-                                        <img src="@img" class="img-thumbnail thumbnail-img" style="cursor: pointer;" onclick="setMainImage('@img','PALETIZACAO')" />
+                                        <div class="thumb-wrapper" data-index="@i" onclick="setMainImage('@img','PALETIZACAO')">
+                                            <img src="@img"
+                                                 class="img-thumbnail thumbnail-img"
+                                                 style="cursor: move;" />
+                                        </div>
                                     }
-                                }
-                                else
-                                {
-                                    <!-- Nenhuma miniatura se não houver imagens -->
-                                }
-                            </div>
-                            <button class="carousel-btn next" onclick="scrollThumbnail(1, 'PALETIZACAO')">&#10095;</button>
+                                </div>
+
+                                <!-- Botão próximo (oculto em mobile) -->
+                                <button class="carousel-btn next d-none d-md-inline" onclick="scrollThumbnail(1, 'PALETIZACAO')">&#10095;</button>
+                            }
+                            else
+                            {
+                                <div id="thumbContainer_PALETIZACAO" class="thumb-container-horizontal d-flex gap-2">
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -366,6 +401,7 @@
 @functions {
     private static readonly Type TypeProduct    = typeof(OXF.Models.Product);
     private static readonly Type TypeInvent     = typeof(OXF.Models.Invent);
+    private static readonly Type TypeInventDim  = typeof(OXF.Models.InventDim);
     private static readonly Type TypeTaxInfo    = typeof(OXF.Models.TaxInformation);
     private static readonly Type TypeOxford     = typeof(OXF.Models.Oxford);
 
@@ -395,6 +431,40 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/produto.css?v=1.3" />
+
+    <style>
+        .carousel-btn {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .thumbnail-row {
+            position: relative;
+            margin: 1rem 0;
+        }
+
+        .thumb-container-horizontal {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 0 1rem;
+            scroll-behavior: smooth;
+        }
+
+        .thumb-wrapper {
+            display: inline-block;
+        }
+
+        .img-thumbnail {
+            max-width: 100px;
+            height: auto;
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+        }
+    </style>
 }
 
 @section Scripts {
@@ -402,7 +472,7 @@
     @{
         var token = antiforgery.GetAndStoreTokens(HttpContext);
     }
-    <script src="~/js/produto.js?v=1.9"></script>
+    <script src="~/js/produto.js?v=2.0"></script>
 
     <script>
         window.produtoId = '@Model.Produto?.ProductId';
@@ -410,15 +480,118 @@
 
         window.imagens = {
             EMBALAGEM: @Html.Raw(Json.Serialize(Model.ImgPackage ?? new List<string>())),
-            DECORACAO: @Html.Raw(Json.Serialize(Model.ImgDecoration ?? new List<string>())),
+            PRODUTO: @Html.Raw(Json.Serialize(Model.ImgProduto ?? new List<string>())),
             PALETIZACAO: @Html.Raw(Json.Serialize(Model.ImgPallet ?? new List<string>()))
         };
 
         window.currentImageIndex_EMBALAGEM = (window.imagens.EMBALAGEM.length > 0) ? 0 : -1;
-        window.currentImageIndex_DECORACAO = (window.imagens.DECORACAO.length > 0) ? 0 : -1;
+        window.currentImageIndex_PRODUTO = (window.imagens.PRODUTO.length > 0) ? 0 : -1;
         window.currentImageIndex_PALETIZACAO = (window.imagens.PALETIZACAO.length > 0) ? 0 : -1;
+
     </script>
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- SortableJS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <script>
+        // Tipos de imagens utilizados
+        const tiposImagem = ['PRODUTO', 'EMBALAGEM', 'PALETIZACAO'];
+
+        tiposImagem.forEach(tipo => {
+            // Inicializa o array se não existir
+            window.imagens = window.imagens || {};
+            window.imagens[tipo] = window.imagens[tipo] || [];
+
+            const container = document.getElementById(`thumbContainer_${tipo}`);
+            if (!container) return;
+
+            // Inicializa o Sortable
+            new Sortable(container, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    const newOrder = Array.from(container.children).map(div => {
+                        const img = div.querySelector('img');
+                        return img ? img.src : null;
+                    }).filter(src => src); // remove nulos
+                    window.imagens[tipo] = newOrder;
+                    console.log(`Nova ordem das imagens (${tipo}):`, window.imagens[tipo]);
+                }
+            });
+
+            // Garante que clique nas miniaturas funcione mesmo com drag-and-drop
+            container.querySelectorAll('.thumbnail-img').forEach(img => {
+                img.addEventListener('click', function (e) {
+                    e.stopPropagation(); // Evita que o drag interfira
+                    const src = this.getAttribute('src');
+                    setMainImage(src, tipo);
+                });
+            });
+        });
+
+        // Função para scroll horizontal do carrossel
+        function scrollThumbnail(direction, tipo) {
+            const container = document.getElementById(`thumbContainer_${tipo}`);
+            const scrollAmount = 150;
+            if (container) {
+                container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+            }
+        }
+
+        // Função para trocar imagem principal
+        function setMainImage(src, tipo) {
+            const mainImg = document.getElementById(`mainImage_${tipo}`);
+            if (mainImg) {
+                mainImg.src = src;
+            }
+        }
+    </script>
+
+    <!--script>
+        // Inicializa o array se não existir
+        window.imagens = window.imagens || {};
+        window.imagens.PRODUTO = window.imagens.PRODUTO || [];
+
+        // Inicializa o Sortable
+        new Sortable(document.getElementById('thumbContainer_PRODUTO'), {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: function (evt) {
+                const container = evt.from;
+                const newOrder = Array.from(container.children).map(div => {
+                    return div.querySelector('img').src;
+                });
+                window.imagens.PRODUTO = newOrder;
+                console.log('Nova ordem das imagens:', window.imagens.PRODUTO);
+            }
+        });
+
+        // Garante que clique nas miniaturas funcione mesmo com drag-and-drop
+        document.querySelectorAll('#thumbContainer_PRODUTO .thumbnail-img').forEach(img => {
+            img.addEventListener('click', function (e) {
+                e.stopPropagation(); // Evita que o drag interfira
+                const src = this.getAttribute('src');
+                setMainImage(src, 'PRODUTO');
+            });
+        });
+
+        // Exemplo de função scrollThumbnail (ajuste conforme sua implementação)
+        function scrollThumbnail(direction, tipo) {
+            const container = document.getElementById(`thumbContainer_${tipo}`);
+            const scrollAmount = 150;
+            container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        }
+
+        // Exemplo de função para setar imagem principal
+        function setMainImage(src, tipo) {
+            const mainImg = document.getElementById(`mainImage_${tipo}`);
+            if (mainImg) {
+                mainImg.src = src;
+            }
+        }
+    </!--script-->
+
 }

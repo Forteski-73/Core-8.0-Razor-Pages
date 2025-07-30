@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using OXF.Constants;
 using OXF.Services;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace OXF.Pages
 {
@@ -50,10 +51,11 @@ namespace OXF.Pages
                 // Envia em lotes de 1000
                 const int loteSize = 1000;
 
-                var produtos = new List<object>();
-                var invents  = new List<object>();
-                var oxfords  = new List<object>();
-                var taxInf   = new List<object>();
+                var produtos    = new List<object>();
+                var invents     = new List<object>();
+                var inventDims  = new List<object>();
+                var oxfords     = new List<object>();
+                var taxInf      = new List<object>();
 
                 var token = User.Claims.FirstOrDefault(c => c.Type == "JwtToken")?.Value;
                 if (string.IsNullOrWhiteSpace(token))
@@ -85,7 +87,7 @@ namespace OXF.Pages
                             productId = campos[0],
                             productName = campos[1],
                             barcode = campos[2],
-                            // outros campos...
+                            status = true,
                         };
 
                         produtos.Add(produto);
@@ -119,6 +121,30 @@ namespace OXF.Pages
                         };
 
                         invents.Add(invent);
+                    }
+                    else if (TipoImportacao == "dimensao")
+                    {
+                        // Processa informações de estoque
+
+                        if (campos.Length < 5)
+                        {
+                            ErrorMessage = Messages.import.InvalidLine11;
+                            return Page();
+                        }
+
+                        var inventDim = new
+                        {
+                            Id = 0,
+                            ProductId   = campos[0],
+                            LocationId  = campos[1],
+                            CompanyId   = campos[2],
+                            Quantity    = string.IsNullOrWhiteSpace(campos[3]) ? (decimal?)null : decimal.Parse(campos[3].Replace(",", ".")),
+                            //Price = string.IsNullOrWhiteSpace(campos[4]) ? (decimal?)null : decimal.Parse(campos[4].Replace(",", ".")) / 100,
+                            Price = string.IsNullOrWhiteSpace(campos[4]) ? (decimal?)null : decimal.Parse(campos[4], new CultureInfo("pt-BR")),
+                    }
+                    ;
+
+                        inventDims.Add(inventDim);
                     }
                     else if (TipoImportacao == "oxford")
                     {
@@ -216,6 +242,28 @@ namespace OXF.Pages
                     {
                         var lote = invents.Skip(i).Take(loteSize).ToList();
                         var (success, error) = await _productService.ImportInventAsync(lote, token);
+
+                        if (!success)
+                        {
+                            ErrorMessage = $"{Messages.import.ErrorImpBatch} {i / loteSize + 1}: {error}";
+                            return Page();
+                        }
+
+                        enviados += lote.Count;
+                    }
+                    SuccessMessage = $"{Messages.import.SuccessFull} {enviados}.";
+
+                }
+                else if (TipoImportacao == "dimensao")
+                {
+                    // Processa informações de estoque
+                    int total = inventDims.Count;
+                    int enviados = 0;
+
+                    for (int i = 0; i < total; i += loteSize)
+                    {
+                        var lote = inventDims.Skip(i).Take(loteSize).ToList();
+                        var (success, error) = await _productService.ImportInventDimAsync(lote, token);
 
                         if (!success)
                         {

@@ -10,5 +10,9 @@
 
         Task<(bool Success, string? ErrorMessage)> ImportTaxInformationAsync(IEnumerable<object> produtos, string jwtToken);
 
+        Task<(bool Success, string? ErrorMessage)> SyncProductAsync(IEnumerable<object> produtos, string jwtToken);
+
+        Task<(bool Success, string? ErrorMessage)> ImportInventDimAsync(IEnumerable<object> inventDims, string jwtToken);
+
     }
 }

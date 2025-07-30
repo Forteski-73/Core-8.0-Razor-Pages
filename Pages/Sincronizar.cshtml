@@ -1,0 +1,48 @@
+﻿@page
+@model SincronizarModel
+@{
+    ViewData["Title"] = "Sincronizar";
+}
+
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h1 class="display-5">Bem-vindo!</h1>
+        <p class="lead">Escolha uma opção de sincronização</p>
+    </div>
+
+    <form method="post">
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="syncOption" id="syncByProduct" value="byProduct" checked onchange="toggleProductField()">
+                <label class="form-check-label" for="syncByProduct">
+                    Sincronizar por produto
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="syncOption" id="syncAll" value="all" onchange="toggleProductField()">
+                <label class="form-check-label" for="syncAll">
+                    Sincronizar todos os produtos
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-3" id="productField">
+            <label for="productId" class="form-label">Código do Produto</label>
+            <input type="text" class="form-control" id="productId" name="productId" placeholder="Digite o código do produto">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Processar</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleProductField() {
+            const isByProduct = document.getElementById('syncByProduct').checked;
+            document.getElementById('productField').style.display = isByProduct ? 'block' : 'none';
+        }
+
+        // Executa no carregamento para garantir exibição correta
+        document.addEventListener('DOMContentLoaded', toggleProductField);
+    </script>
+}
