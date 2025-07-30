@@ -41,13 +41,11 @@ function setMainImage(src, finalidade) {
     }
 
     document.querySelectorAll(`#thumbContainer_${finalidade} .thumbnail-img`).forEach(el => {
-        //el.classList.toggle("selected", el.src === src);
         el.classList.toggle("selected", el.src === src || el.getAttribute("src") === src);
     });
 }
 
 // ======================= IMAGEM ESCOLHIDA =======================
-/*
 function handleImageSelected(event, finalidade) {
     const file = event.target.files[0];
     if (!file) return;
@@ -56,39 +54,13 @@ function handleImageSelected(event, finalidade) {
     reader.onload = function (e) {
         const dataUrl = e.target.result;
 
-        if (!window.imagens[finalidade]) {
-            window.imagens[finalidade] = [];
-        }
-
-        window.imagens[finalidade].push(dataUrl);
-        window["currentImageIndex_" + finalidade] = window.imagens[finalidade].length - 1;
-
-        setMainImage(dataUrl, finalidade);
-        atualizarThumbnails(finalidade);
-    };
-    reader.readAsDataURL(file);
-}*/
-
-function handleImageSelected(event, finalidade) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        const dataUrl = e.target.result;
-
-        // Garante que o array da finalidade exista
-        if (!window.imagens) window.imagens = {};
         if (!window.imagens[finalidade]) window.imagens[finalidade] = [];
 
         window.imagens[finalidade].push(dataUrl);
-
-        // Atualiza índice e imagem principal
-        window["currentImageIndex_" + finalidade] = window.imagens[finalidade].length - 1;
+        const novoIndex = window.imagens[finalidade].length - 1;
+        window["currentImageIndex_" + finalidade] = novoIndex;
         setMainImage(dataUrl, finalidade);
         atualizarThumbnails(finalidade);
-
-        // *** Envia para a API ***
         enviarImagens(finalidade);
     };
     reader.readAsDataURL(file);
@@ -96,7 +68,6 @@ function handleImageSelected(event, finalidade) {
 
 // ======================= INPUT DE IMAGEM =======================
 function triggerImageInput(finalidade) {
-
     const cameraInputId = `imageInputCamera_${finalidade}`;
     const galleryInputId = `imageInputGallery_${finalidade}`;
 
@@ -109,45 +80,15 @@ function triggerImageInput(finalidade) {
 }
 
 // ======================= REMOVER IMAGEM =======================
-/*function removeCurrentImage(finalidade) {
-    const imagens = window.imagens[finalidade];
-    const currentIndex = window["currentImageIndex_" + finalidade];
-
-    if (!imagens || imagens.length === 0) return;
-
-    imagens.splice(currentIndex, 1);
-
-    if (imagens.length === 0) {
-        document.getElementById('mainImage_' + finalidade).src = "";
-        document.getElementById('thumbContainer_' + finalidade).innerHTML = "";
-        return;
-    }
-
-    window["currentImageIndex_" + finalidade] = 0;
-    const novaPrincipal = imagens[0];
-
-    setMainImage(novaPrincipal, finalidade);
-    atualizarThumbnails(finalidade);
-
-    // *** Envia para a API ***
-    enviarImagens(finalidade);
-}*/
-
 function removeCurrentImage(finalidade) {
     const imagens = window.imagens[finalidade];
     const mainImgElement = document.getElementById('mainImage_' + finalidade);
-    const currentSrc = mainImgElement?.src;
+    const currentIndex = window["currentImageIndex_" + finalidade];
 
-    if (!imagens || imagens.length === 0 || !currentSrc) return;
+    if (!imagens || imagens.length === 0 || currentIndex === -1) return;
 
-    // Descobre o índice da imagem atualmente exibida
-    const currentIndex = imagens.findIndex(img => img === currentSrc);
-    if (currentIndex === -1) return; // segurança
-
-    // Remove a imagem que está visível
     imagens.splice(currentIndex, 1);
 
-    // Se não há mais imagens
     if (imagens.length === 0) {
         mainImgElement.src = "";
         document.getElementById('thumbContainer_' + finalidade).innerHTML = "";
@@ -156,16 +97,11 @@ function removeCurrentImage(finalidade) {
         return;
     }
 
-    // Define o novo índice atual (anterior se possível, senão próxima, ou 0)
     const novoIndex = Math.min(currentIndex, imagens.length - 1);
     const novaPrincipal = imagens[novoIndex];
     window["currentImageIndex_" + finalidade] = novoIndex;
-
-    // Atualiza visualmente
     setMainImage(novaPrincipal, finalidade);
     atualizarThumbnails(finalidade);
-
-    // *** Envia para a API ***
     enviarImagens(finalidade);
 }
 
@@ -177,6 +113,7 @@ function atualizarThumbnails(finalidade) {
     window.imagens[finalidade].forEach((img, index) => {
         const thumb = document.createElement("img");
         thumb.src = img;
+        thumb.dataset.url = img;
         thumb.className = "img-thumbnail thumbnail-img";
         thumb.style.cursor = "pointer";
         thumb.onclick = () => {
@@ -188,64 +125,8 @@ function atualizarThumbnails(finalidade) {
 }
 
 // ======================= SALVAR IMAGENS =======================
-/*
 function enviarImagens(finalidade) {
     const imagens = window.imagens[finalidade];
-
-    if (!imagens || imagens.length === 0) {
-        alert(`Nenhuma imagem para salvar em ${finalidade}.`);
-        return;
-    }
-
-    const formData = new FormData();
-
-    imagens.forEach((dataUrl, index) => {
-        const base64Data = dataUrl.split(',')[1];
-        const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
-        const byteString = atob(base64Data);
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
-        for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-
-        const blob = new Blob([ab], { type: mimeString });
-        const numero = String(index + 1).padStart(4, '0');
-        const extensao = mimeString.split('/')[1] || 'jpg';
-        formData.append('files', blob, `${numero}.${extensao}`);
-    });
-
-
-    fetch(`?handler=UploadBase64&product=${window.produtoId}`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${window.token}`
-        },
-        body: formData
-    })
-        .then(async response => {
-            if (!response.ok) {
-                const text = await response.text();
-                alert(`Erro ao salvar imagens de ${finalidade}:\n` + text);
-                return;
-            }
-
-            const data = await response.json();
-            if (data.success) {
-                alert(`Imagens de ${finalidade} salvas com sucesso!`);
-                window.location.reload();
-            } else {
-                alert(`Erro ao salvar imagens de ${finalidade}.`);
-            }
-        })
-        .catch(error => {
-            console.error("Erro na requisição:", error);
-            alert(`Falha na comunicação com o servidor para ${finalidade}.`);
-        });
-}
-*/
-
-function enviarImagens(finalidade) {
-    const imagens = window.imagens[finalidade];
-
     if (!imagens || imagens.length === 0) {
         alert("Nenhuma imagem para salvar.");
         return;
@@ -261,18 +142,14 @@ function enviarImagens(finalidade) {
         for (let i = 0; i < byteString.length; i++) {
             ia[i] = byteString.charCodeAt(i);
         }
-
         const blob = new Blob([ab], { type: mimeString });
-    
-        // Gera nome: 0001.jpg, 0002.png, 0003.png etc.
         const numero = String(index + 1).padStart(4, '0');
         const extensao = mimeString.split('/')[1] || 'jpg';
         const nomeArquivo = `${numero}.${extensao}`;
-
         formData.append('files', blob, nomeArquivo);
     });
-    const produtoId = window.produtoId;
 
+    const produtoId = window.produtoId;
     fetch(`?handler=UploadBase64&product=${produtoId}&finalidade=${finalidade}`, {
         method: 'POST',
         headers: {
@@ -287,10 +164,7 @@ function enviarImagens(finalidade) {
                 return;
             }
             const data = await response.json();
-            if (data.success) {
-                //alert("Imagens salvas com sucesso!");
-                //window.location.reload();
-            } else {
+            if (!data.success) {
                 alert("Erro ao salvar imagens.");
             }
         })
@@ -300,7 +174,6 @@ function enviarImagens(finalidade) {
         });
 }
 
-
 // ======================= SCROLL MINIATURAS =======================
 function scrollThumbnail(direction, finalidade) {
     const container = document.getElementById("thumbContainer_" + finalidade);
@@ -309,27 +182,11 @@ function scrollThumbnail(direction, finalidade) {
 
 // ======================= TABS =======================
 function toggleTab(header, idTab) {
-
     const tab = document.getElementById(idTab);
-    if (tab.classList.contains('expanded')) {
-        tab.classList.remove('expanded');
-    } else {
-        tab.classList.add('expanded');
-    }
+    tab.classList.toggle('expanded');
 }
-/*
-function toggleTab(header) {
-    //if (header.querySelector(':hover')?.closest('button')) return;
-    const tab = header.parentElement;
-    if (tab.classList.contains('expanded')) {
-        tab.classList.remove('expanded')
-    } else {
-        tab.classList.add('expanded');
-    }
-}*/
 
 // ======================= GET COOKIE =======================
-
 function getCookie(name) {
     const cookies = document.cookie.split(';');
     for (const cookie of cookies) {
@@ -338,3 +195,92 @@ function getCookie(name) {
     }
     return null;
 }
+
+// ======================= INICIALIZAÇÃO SORTABLE E CLIQUES =======================
+const tiposImagem = ['PRODUTO', 'EMBALAGEM', 'PALETIZACAO'];
+tiposImagem.forEach(tipo => {
+    window.imagens[tipo] = window.imagens[tipo] || [];
+    const container = document.getElementById(`thumbContainer_${tipo}`);
+    if (!container) return;
+
+    new Sortable(container, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: function () {
+            const newOrder = Array.from(container.querySelectorAll('img')).map(img => img.src).filter(Boolean);
+            window.imagens[tipo] = newOrder;
+
+            const atualSrc = document.getElementById("mainImage_" + tipo)?.src;
+            const novoIndex = newOrder.indexOf(atualSrc);
+            window["currentImageIndex_" + tipo] = novoIndex;
+
+            atualizarThumbnails(tipo);
+            enviarImagens(tipo);
+        }
+    });
+
+    container.querySelectorAll('.thumbnail-img').forEach(img => {
+        img.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const src = this.getAttribute('src');
+            setMainImage(src, tipo);
+        });
+    });
+});
+
+
+// ======================= ATIVA/DESATIVA DRAG AND DROP  =======================
+
+let sortableInstances = {};
+let reordenacaoAtiva = {}; // controle por finalidade
+
+function toggleReordenacao(finalidade) {
+    const btn = document.getElementById("toggleSort_" + finalidade);
+
+    if (!reordenacaoAtiva[finalidade]) {
+        ativarSortable(finalidade);
+        reordenacaoAtiva[finalidade] = true;
+        btn.classList.remove("btn-outline-secondary");
+        btn.classList.add("btn-success");
+        btn.innerHTML = "✅ Reordenando...";
+    } else {
+        desativarSortable(finalidade);
+        reordenacaoAtiva[finalidade] = false;
+        btn.classList.remove("btn-success");
+        btn.classList.add("btn-outline-secondary");
+        btn.innerHTML = "🔒 Reordenar";
+    }
+}
+
+function ativarSortable(finalidade) {
+    const container = document.getElementById("thumbContainer_" + finalidade);
+
+    if (!sortableInstances[finalidade]) {
+        sortableInstances[finalidade] = new Sortable(container, {
+            animation: 150,
+            onEnd: function (evt) {
+                const oldIndex = evt.oldIndex;
+                const newIndex = evt.newIndex;
+                const imagens = window.imagens[finalidade];
+
+                if (!imagens || imagens.length === 0) return;
+
+                const movedItem = imagens.splice(oldIndex, 1)[0];
+                imagens.splice(newIndex, 0, movedItem);
+
+                window["currentImageIndex_" + finalidade] = newIndex;
+                setMainImage(imagens[newIndex], finalidade);
+                enviarImagens(finalidade);
+            }
+        });
+    } else {
+        sortableInstances[finalidade].option("disabled", false);
+    }
+}
+
+function desativarSortable(finalidade) {
+    if (sortableInstances[finalidade]) {
+        sortableInstances[finalidade].option("disabled", true);
+    }
+}
+// ======================= ATIVA/DESATIVA DRAG AND DROP  =======================
