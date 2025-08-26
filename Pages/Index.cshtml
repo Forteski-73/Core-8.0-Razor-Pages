@@ -3,7 +3,34 @@
 @{
     ViewData["Title"] = "Home page";
 }
+<style>
+        body {
+                background-image: url('img/backgound.jpg');
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-position: center center;
 
-<div class="text-center">
-    <h1 class="display-4">BEM VINDO !</h1>
+    }
+
+        .texto-branco {
+                color: white;
+
+    }
+
+    /* Novo estilo para centralizar o texto */
+    .centralizar-h1 {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute; /* Usamos posição absoluta para não interferir no resto do layout */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+</style>
+
+<div class="centralizar-h1">
+    <h1 class="display-4 texto-branco">BEM VINDO !</h1>
 </div>
