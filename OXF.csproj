@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\lib\datatables\**" />
+    <Compile Remove="wwwroot\lib\fontawesome\**" />
+    <Content Remove="wwwroot\lib\datatables\**" />
+    <Content Remove="wwwroot\lib\fontawesome\**" />
+    <EmbeddedResource Remove="wwwroot\lib\datatables\**" />
+    <EmbeddedResource Remove="wwwroot\lib\fontawesome\**" />
+    <None Remove="wwwroot\lib\datatables\**" />
+    <None Remove="wwwroot\lib\fontawesome\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\images\cache\" />
   </ItemGroup>
 

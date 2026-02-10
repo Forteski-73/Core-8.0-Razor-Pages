@@ -40,6 +40,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IClientIpProvider, ClientIpProvider>();
 builder.Services.AddHttpClient<IProductService, ProductService>();
 
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

@@ -1,0 +1,302 @@
+﻿@page
+@model OXF.Pages.InventarioModel
+@using System.ComponentModel.DataAnnotations
+@using OXF.Models
+@{
+    ViewData["Title"] = "Consulta de Inventário";
+}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+<style>
+    .column-filter {
+        width: 100%;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        font-weight: normal;
+        margin-top: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        text-transform: none;
+        display: block;
+    }
+
+    .btn-action-group {
+        display: flex;
+        gap: 5px;
+        flex-wrap: nowrap;
+    }
+
+    .dataTables_length {
+        margin-bottom: 15px;
+    }
+
+    /* Estilo para indicar que o inventário já foi baixado */
+    .btn-downloaded {
+        color: #198754 !important;
+    }
+
+    .icon-download {
+        transition: transform 0.2s ease;
+        cursor: pointer;
+    }
+
+        .icon-download:hover {
+            transform: scale(1.2);
+        }
+
+    @@media (max-width: 768px) {
+        h2 {
+            font-size: 1.25rem;
+        }
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h2 class="text-uppercase fw-bold text-dark mb-0">📦 Consulta de Inventários</h2>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger shadow-sm alert-dismissible fade show">
+            <i class="fas fa-exclamation-triangle me-2"></i> @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-2 p-md-3">
+            <div class="table-responsive border-0">
+                <table id="tabelaInventario" class="table table-hover align-middle mb-0 display nowrap w-100">
+                    <thead class="bg-light text-muted text-uppercase small">
+                        <tr>
+                            <th class="all">@GetDisplayName(nameof(Inventory.InventCode))</th>
+                            <th class="all">@GetDisplayName(nameof(Inventory.InventName))</th>
+                            <th class="min-tablet">@GetDisplayName(nameof(Inventory.InventSector))</th>
+                            <th class="min-desktop">@GetDisplayName(nameof(Inventory.InventCreated))</th>
+                            <th class="min-tablet">@GetDisplayName(nameof(Inventory.InventStatus))</th>
+                            <th class="min-tablet">@GetDisplayName(nameof(Inventory.InventGuid))</th>
+                            <th class="min-tablet text-end no-filter">@GetDisplayName(nameof(Inventory.InventTotal))</th>
+                            <th class="all text-center no-filter">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Inventarios)
+                        {
+                            <tr>
+                                <td class="fw-bold">@item.InventCode</td>
+                                <td>@item.InventName</td>
+                                <td><span class="badge bg-light text-dark border">@item.InventSector</span></td>
+                                <td>@item.InventCreated?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @{
+                                        var statusClass = item.InventStatus == "Iniciado" ? "bg-warning text-dark" : "bg-success text-white";
+                                        var iconClass = item.InventStatus == "Iniciado" ? "fa-spinner fa-spin" : "fa-check-circle";
+                                    }
+                                    <span class="badge rounded-pill @statusClass text-uppercase px-3 py-2" style="width:116px">
+                                        <i class="fas @iconClass me-1"></i>@item.InventStatus
+                                    </span>
+                                </td>
+                                <td style="font-size: 0.75rem;">@item.InventGuid</td>
+                                <td class="text-end fw-bold text-primary">@item.InventTotal.ToString("N0")</td>
+                                <td class="text-center">
+                                    <div class="btn-action-group justify-content-center">
+                                        <a href="@Url.Page("./Detalhes", new { id = item.InventCode })" class="btn btn-sm btn-outline-secondary" hidden>
+                                            <i class="fas fa-eye"></i> ITENS
+                                        </a>
+                                        <button onclick="downloadInventario('@item.InventCode')"
+                                                class="btn btn-link btn-download-trigger p-0 text-decoration-none"
+                                                data-code="@item.InventCode"
+                                                title="Baixar Inventário">
+                                            <i class="fa-solid fa-cloud-arrow-down fa-2x icon-download"></i>
+                                        </button>
+                                        <button onclick="excluirInventario('@item.InventCode')" class="btn btn-sm btn-outline-danger" hidden>
+                                            <i class="fas fa-trash"></i> EXCLUIR
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDownload" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header px-4 py-3 border-0">
+                <div>
+                    <h5 class="modal-title fw-semibold mb-0"><i class="fa-solid fa-cloud-arrow-down text-primary me-2"></i>Exportar Inventário</h5>
+                    <small class="text-muted">Suas preferências de colunas serão salvas</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pt-3 pb-2">
+                <input type="hidden" id="downloadInventGuid" /><input type="hidden" id="downloadInventCode" />
+                <div class="row g-2">
+                    @{
+                        var colunasExport = new Dictionary<string, string> {
+                                        { "InventUnitizer", "Unitizador" }, { "InventLocation", "Localização" },
+                                        { "InventBarcode", "Cód. Barras" }, { "InventProduct", "Cód. Produto" },
+                                        { "ProductDescription", "Nome do Produto" }, { "InventStandardStack", "Qtd. por Pilhas" },
+                                        { "InventQtdStack", "Qtd. Pilhas" }, { "InventQtdIndividual", "Qtd. Avulsa" },
+                                        { "InventTotal", "Total de Itens" }
+                                        };
+                    }
+                    @foreach (var col in colunasExport)
+                    {
+                        <div class="col-6">
+                            <label class="d-flex align-items-center gap-2 p-2 border rounded-3 small cursor-pointer">
+                                <input class="form-check-input m-0" type="checkbox" name="selectedColumns" value="@col.Key" id="chk_@col.Key">
+                                <span class="fw-medium">@col.Value</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="modal-footer px-4 py-3 border-0 bg-light rounded-bottom-4">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary btn-sm px-4" onclick="executarDownload()">
+                    <i class="fa-solid fa-cloud-arrow-down me-2"></i>
+                    Baixar arquivo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetDisplayName(string propertyName)
+    {
+        var prop = typeof(Inventory).GetProperty(propertyName);
+        var display = prop?.GetCustomAttributes(typeof(DisplayAttribute), false).FirstOrDefault() as DisplayAttribute;
+        return display?.Name ?? propertyName;
+    }
+}
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            carregarPreferenciasExportacao();
+
+            var table = $('#tabelaInventario').DataTable({
+                responsive: true,
+                pageLength: 25,
+                dom: '<"d-flex justify-content-between align-items-center"l>rtip',
+                language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json' },
+                initComplete: function () {
+                    this.api().columns().every(function () {
+                        var column = this;
+                        var header = $(column.header());
+                        if (!header.hasClass('no-filter')) {
+                            var input = $('<input type="text" class="column-filter" placeholder="Filtrar..." />')
+                                .appendTo(header)
+                                .on('keyup change clear', function (e) {
+                                    e.stopPropagation();
+                                    if (column.search() !== this.value) { column.search(this.value).draw(); }
+                                });
+                            input.on('click', function (e) { e.stopPropagation(); });
+                        }
+                    });
+                    atualizarVisualBotoesDownload();
+                }
+            });
+
+            table.on('draw', function() {
+                atualizarVisualBotoesDownload();
+            });
+        });
+
+        function salvarPreferenciasExportacao(colunas) {
+            localStorage.setItem('oxf_export_cols', JSON.stringify(colunas));
+        }
+
+        function carregarPreferenciasExportacao() {
+            const salvas = localStorage.getItem('oxf_export_cols');
+            if (salvas) {
+                const colunas = JSON.parse(salvas);
+                $("input[name='selectedColumns']").prop('checked', false);
+                colunas.forEach(val => {
+                    $(`input[name='selectedColumns'][value='${val}']`).prop('checked', true);
+                });
+            }
+        }
+
+        function marcarComoBaixado(code) {
+            let baixados = JSON.parse(localStorage.getItem('oxf_downloaded_codes') || "[]");
+            if (!baixados.includes(code)) {
+                baixados.push(code);
+                localStorage.setItem('oxf_downloaded_codes', JSON.stringify(baixados));
+            }
+            atualizarVisualBotoesDownload();
+        }
+
+        function atualizarVisualBotoesDownload() {
+            const baixados = JSON.parse(localStorage.getItem('oxf_downloaded_codes') || "[]");
+            baixados.forEach(code => {
+                $(`.btn-download-trigger[data-code="${code}"]`)
+                    .addClass('btn-downloaded')
+                    .attr('title', 'Baixado anteriormente');
+            });
+        }
+
+        const columnMap = {
+            InventCode: "inventCode", InventCreated: "inventCreated", InventUser: "inventUser",
+            InventUnitizer: "inventUnitizer", InventLocation: "inventLocation", InventProduct: "inventProduct",
+            InventBarcode: "inventBarcode", ProductDescription: "productDescription",
+            InventStandardStack: "inventStandardStack", InventQtdStack: "inventQtdStack",
+            InventQtdIndividual: "inventQtdIndividual", InventTotal: "inventTotal"
+        };
+
+        async function executarDownload() {
+            const code = $('#downloadInventCode').val();
+            const checkedInputs = $("input[name='selectedColumns']:checked");
+            const columns = checkedInputs.map((_, el) => el.value).get();
+
+            if (!columns.length) { alert("Selecione pelo menos uma coluna."); return; }
+
+            salvarPreferenciasExportacao(columns);
+
+            const response = await fetch(`?handler=Download&code=${code}`);
+            const dados = await response.json();
+            let txt = "";
+            dados.forEach(r => {
+                const linha = columns.map(c => {
+                    const jsonProp = columnMap[c];
+                    let valor = r[jsonProp];
+                    return (valor === null || valor === undefined) ? "" : String(valor);
+                }).join(";");
+                txt += linha + "\r\n";
+            });
+            const blob = new Blob([txt], { type: "text/plain;charset=windows-1252" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `${code}.txt`;
+            link.click();
+
+            marcarComoBaixado(code);
+            bootstrap.Modal.getInstance(document.getElementById("modalDownload")).hide();
+        }
+
+        function downloadInventario(code) {
+            $('#downloadInventCode').val(code);
+            new bootstrap.Modal('#modalDownload').show();
+        }
+
+        function excluirInventario(id) {
+            if (confirm(`Deseja realmente excluir o inventário ${id}?`)) {
+                console.log("Excluir:", id);
+            }
+        }
+    </script>
+}
