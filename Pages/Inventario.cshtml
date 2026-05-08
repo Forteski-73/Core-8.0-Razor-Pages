@@ -79,6 +79,7 @@
                             <th class="min-desktop">@GetDisplayName(nameof(Inventory.InventCreated))</th>
                             <th class="min-tablet">@GetDisplayName(nameof(Inventory.InventStatus))</th>
                             <th class="min-tablet">@GetDisplayName(nameof(Inventory.InventGuid))</th>
+                            <th class="min-tablet">@GetDisplayName(nameof(Inventory.InventUser))</th>
                             <th class="min-tablet text-end no-filter">@GetDisplayName(nameof(Inventory.InventTotal))</th>
                             <th class="all text-center no-filter">Ações</th>
                         </tr>
@@ -101,6 +102,7 @@
                                     </span>
                                 </td>
                                 <td style="font-size: 0.75rem;">@item.InventGuid</td>
+                                <td>@item.InventUser</td>
                                 <td class="text-end fw-bold text-primary">@item.InventTotal.ToString("N0")</td>
                                 <td class="text-center">
                                     <div class="btn-action-group justify-content-center">
